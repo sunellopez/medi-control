@@ -1,0 +1,207 @@
+<div class="p-4 md:p-6 max-w-7xl mx-auto z-10 relative">
+  <p-toast position="top-right" />
+  <p-confirmdialog />
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <div>
+      <h2 class="text-3xl font-extrabold text-mc-text-primary tracking-tight">Directorio de Pacientes</h2>
+      <p class="text-mc-text-secondary mt-1 font-medium">
+        {{ totalRecords() }} pacientes registrados
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button pButton icon="pi pi-download" label="Exportar CSV"
+        class="!bg-white/30 !text-mc-text-primary !border-mc-glass-border hover:!bg-white/50 !rounded-xl !font-bold !text-sm backdrop-blur-sm"
+        (click)="exportCSV(dt)">
+      </button>
+      <button pButton icon="pi pi-plus" label="Nuevo Paciente"
+        class="liquid-glass-btn !px-4 !py-2 !rounded-xl !font-bold !text-sm !border-0" (click)="openCreate()">
+      </button>
+    </div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="mb-4">
+    <div class="relative">
+      <i class="pi pi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-mc-text-secondary text-sm z-10"></i>
+      <input pInputText type="text" placeholder="Buscar por nombre, apellido o teléfono..."
+        class="liquid-glass-input !pl-10 w-full sm:max-w-sm" (input)="onSearch($any($event.target).value)">
+    </div>
+  </div>
+
+  <!-- PrimeNG Table -->
+  <div class="liquid-glass-panel overflow-hidden">
+    <p-table #dt [value]="patients()" [loading]="loading()" [lazy]="true" [paginator]="true" [rows]="perPage"
+      [totalRecords]="totalRecords()" [rowsPerPageOptions]="[5, 10, 25, 50]" (onPage)="onPage($event)"
+      [exportFilename]="'pacientes'" dataKey="id" styleClass="!bg-transparent" [tableStyle]="{'width':'100%'}">
+
+      <ng-template #header>
+        <tr class="border-b border-mc-glass-border bg-black/5">
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Paciente</th>
+          <th
+            class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider hidden lg:table-cell">
+            Fecha Nac.</th>
+          <th
+            class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider hidden md:table-cell">
+            Género</th>
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Teléfono</th>
+          <th
+            class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider hidden xl:table-cell">
+            Contacto Emergencia</th>
+          <th class="p-4 text-right text-xs font-bold text-mc-text-primary uppercase tracking-wider">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-patient>
+        <tr class="border-b border-mc-glass-border/50 hover:bg-white/20 transition-all group">
+          <td class="p-4">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-9 h-9 rounded-xl liquid-glass-btn border-0 shadow-none flex-shrink-0 flex items-center justify-center">
+                <i class="pi pi-user text-white text-sm"></i>
+              </div>
+              <div>
+                <p class="font-bold text-mc-text-primary group-hover:text-mc-primary-dark transition-colors">
+                  {{ patient.first_name }} {{ patient.last_name }}
+                </p>
+              </div>
+            </div>
+          </td>
+          <td class="p-4 text-mc-text-secondary font-medium hidden lg:table-cell">
+            {{ patient.date_of_birth | date:'dd/MM/yyyy' }}
+          </td>
+          <td class="p-4 hidden md:table-cell">
+            <span
+              class="px-3 py-1 rounded-full text-xs font-bold bg-mc-primary/15 text-mc-primary-dark border border-mc-primary/30">
+              {{ genderLabel(patient.gender) }}
+            </span>
+          </td>
+          <td class="p-4 text-mc-text-secondary font-medium">
+            {{ patient.phone || '—' }}
+          </td>
+          <td class="p-4 text-mc-text-secondary font-medium hidden xl:table-cell">
+            <span *ngIf="patient.emergency_contact">
+              {{ patient.emergency_contact }} · <span class="text-xs">{{ patient.emergency_phone }}</span>
+            </span>
+            <span *ngIf="!patient.emergency_contact" class="opacity-40">N/A</span>
+          </td>
+          <td class="p-4 text-right">
+            <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button pButton icon="pi pi-pencil"
+                class="!w-8 !h-8 !p-0 !rounded-lg !bg-white/20 !border-mc-glass-border !text-mc-text-primary hover:!bg-mc-primary hover:!text-white hover:!border-mc-primary transition-all"
+                title="Editar" (click)="openEdit(patient)">
+              </button>
+              <button pButton icon="pi pi-trash"
+                class="!w-8 !h-8 !p-0 !rounded-lg !bg-white/20 !border-mc-glass-border !text-mc-text-primary hover:!bg-red-500 hover:!text-white hover:!border-red-500 transition-all"
+                title="Eliminar" (click)="confirmDelete(patient)">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #empty>
+        <tr>
+          <td colspan="6" class="py-16 text-center">
+            <div class="flex flex-col items-center gap-3">
+              <div
+                class="w-16 h-16 liquid-glass-btn !rounded-2xl border-0 shadow-none flex items-center justify-center">
+                <i class="pi pi-users text-white text-2xl"></i>
+              </div>
+              <p class="font-bold text-mc-text-primary text-lg">No se encontraron pacientes</p>
+              <p class="text-mc-text-secondary text-sm">Intenta otro término de búsqueda o crea un nuevo paciente.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #loadingbody>
+        <tr *ngFor="let i of [1,2,3,4,5]">
+          <td colspan="6" class="p-4">
+            <div class="animate-pulse flex gap-3 items-center">
+              <div class="w-9 h-9 rounded-xl bg-white/20"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 bg-white/20 rounded w-1/3"></div>
+                <div class="h-2 bg-white/10 rounded w-1/5"></div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+</div>
+
+<!-- Create / Edit Dialog -->
+<p-dialog [(visible)]="showDialog" [header]="dialogTitle" [modal]="true" [closable]="true" [draggable]="false"
+  styleClass="!rounded-3xl !overflow-hidden w-full" [style]="{ width: '560px', maxWidth: '95vw' }">
+
+  <form [formGroup]="form" class="p-2 flex flex-col gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- First name -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Nombre *</label>
+        <input pInputText formControlName="first_name" placeholder="Nombre(s)" class="liquid-glass-input" />
+        <small *ngIf="form.get('first_name')?.touched && form.get('first_name')?.invalid"
+          class="text-red-500 text-xs">Requerido</small>
+      </div>
+      <!-- Last name -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Apellidos *</label>
+        <input pInputText formControlName="last_name" placeholder="Apellido Paterno Materno"
+          class="liquid-glass-input" />
+        <small *ngIf="form.get('last_name')?.touched && form.get('last_name')?.invalid"
+          class="text-red-500 text-xs">Requerido</small>
+      </div>
+      <!-- DOB -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Fecha de Nacimiento *</label>
+        <input pInputText type="date" formControlName="date_of_birth" class="liquid-glass-input" />
+        <small *ngIf="form.get('date_of_birth')?.touched && form.get('date_of_birth')?.invalid"
+          class="text-red-500 text-xs">Requerido</small>
+      </div>
+      <!-- Gender -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Género *</label>
+        <p-select formControlName="gender" [options]="genderOptions" optionLabel="label" optionValue="value"
+          panelStyleClass="liquid-glass-input !p-0" />
+      </div>
+      <!-- Phone -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Teléfono</label>
+        <input pInputText formControlName="phone" placeholder="555-000-0000" class="liquid-glass-input" />
+      </div>
+      <!-- Emergency contact -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Contacto de Emergencia</label>
+        <input pInputText formControlName="emergency_contact" placeholder="Nombre completo"
+          class="liquid-glass-input" />
+      </div>
+      <!-- Emergency phone -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Tel. Emergencia</label>
+        <input pInputText formControlName="emergency_phone" placeholder="555-000-0001" class="liquid-glass-input" />
+      </div>
+    </div>
+    <!-- Address -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Dirección</label>
+      <textarea pInputText formControlName="address" rows="2" placeholder="Calle, Colonia, Ciudad"
+        class="liquid-glass-input resize-none"></textarea>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-3 p-2">
+      <button pButton label="Cancelar" icon="pi pi-times"
+        class="!bg-white/20 !text-mc-text-primary !border-mc-glass-border hover:!bg-white/40 !rounded-xl !font-bold"
+        (click)="showDialog.set(false)">
+      </button>
+      <button pButton [label]="editingId ? 'Actualizar' : 'Guardar'" icon="pi pi-check"
+        class="liquid-glass-btn !rounded-xl !font-bold !border-0 !px-6" (click)="save()">
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

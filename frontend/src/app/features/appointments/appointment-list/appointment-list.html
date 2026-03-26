@@ -1,0 +1,87 @@
+<div class="p-6 max-w-7xl mx-auto animate-fade-in relative z-10">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+    <div>
+      <h2 class="text-3xl font-extrabold text-mc-text-primary tracking-tight">Gestión de Citas</h2>
+      <p class="text-mc-text-secondary mt-1 font-medium">Administra el calendario de citas médicas</p>
+    </div>
+    <button class="liquid-glass-btn px-5 py-2.5 shadow-md flex items-center gap-2 text-sm font-bold">
+      <i class="pi pi-plus"></i> Nueva Cita
+    </button>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    @for (stat of stats; track stat.label) {
+      <div class="liquid-glass-panel rounded-2xl p-4 flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">{{ stat.label }}</span>
+          <div class="w-8 h-8 liquid-glass-btn !rounded-xl border-0 shadow-none flex items-center justify-center">
+            <i [class]="'pi ' + stat.icon + ' text-white text-sm'"></i>
+          </div>
+        </div>
+        <span class="text-3xl font-black text-mc-primary">{{ stat.value }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- Appointments list -->
+  <div class="liquid-glass-panel overflow-hidden rounded-2xl">
+    <!-- Filter bar -->
+    <div class="flex items-center justify-between p-4 border-b border-mc-glass-border bg-black/5">
+      <span class="text-sm font-bold text-mc-text-primary">Citas de hoy</span>
+      <div class="flex gap-2">
+        @for (filter of filters; track filter) {
+          <button
+            (click)="activeFilter = filter"
+            class="px-3 py-1 rounded-full text-xs font-bold transition-all"
+            [class]="activeFilter === filter
+              ? 'liquid-glass-btn border-mc-glass-border shadow-sm text-white'
+              : 'bg-white/20 text-mc-text-secondary hover:bg-white/40'">
+            {{ filter }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- List -->
+    <div class="divide-y divide-mc-glass-border/50">
+      @for (appointment of filteredAppointments(); track appointment.id) {
+        <div class="flex items-center justify-between p-4 sm:p-5 hover:bg-white/20 transition-all group cursor-pointer">
+          <!-- Left: time + name -->
+          <div class="flex items-center gap-4">
+            <div class="text-center min-w-[52px]">
+              <span class="block text-lg font-black text-mc-primary leading-none">{{ appointment.time }}</span>
+              <span class="text-[10px] font-bold text-mc-text-secondary uppercase tracking-wider">{{ appointment.period }}</span>
+            </div>
+            <div class="w-px h-10 bg-mc-glass-border"></div>
+            <div>
+              <p class="font-bold text-mc-text-primary group-hover:text-mc-primary-dark transition-colors">{{ appointment.patient }}</p>
+              <p class="text-sm text-mc-text-secondary font-medium">{{ appointment.type }}</p>
+            </div>
+          </div>
+          <!-- Right: status + actions -->
+          <div class="flex items-center gap-3">
+            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold"
+              [class]="statusClass(appointment.status)">
+              {{ appointment.status }}
+            </span>
+            <button class="w-8 h-8 liquid-glass-btn !rounded-lg border-0 shadow-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <i class="pi pi-ellipsis-v text-white text-xs"></i>
+            </button>
+          </div>
+        </div>
+      }
+
+      @empty {
+        <div class="p-12 text-center">
+          <div class="liquid-glass-btn w-20 h-20 !rounded-3xl mx-auto mb-4 flex items-center justify-center border-0 shadow-none">
+            <i class="pi pi-calendar text-white text-3xl"></i>
+          </div>
+          <p class="text-lg font-bold text-mc-text-primary">Sin citas para hoy</p>
+          <p class="text-sm mt-1 text-mc-text-secondary font-medium">Haz clic en 'Nueva Cita' para agendar una.</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

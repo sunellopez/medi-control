@@ -1,0 +1,22 @@
+<!-- Liquid Green Background -->
+<div class="min-h-screen w-full flex flex-col bg-mc-bg-base relative overflow-hidden">
+  <!-- Ambient light blobs matching the palette -->
+  <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-mc-primary-soft rounded-full mix-blend-multiply filter blur-[100px] opacity-70 animate-pulse"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-mc-accent rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-pulse" style="animation-delay: 3s;"></div>
+
+  <!-- Global Loader Overlay -->
+  <app-loader></app-loader>
+
+  <!-- App Content z-10 ensures it sits above the blobs -->
+  <div class="z-10 flex flex-col h-full w-full">
+    <!-- Fixed Sticky Header MegaMenu -->
+    <div class="sticky top-0 w-full z-50">
+      <app-mega-menu></app-mega-menu>
+    </div>
+    
+    <!-- Main Content Area -->
+    <main class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full animate-fadein mt-4">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

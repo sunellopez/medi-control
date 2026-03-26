@@ -1,0 +1,49 @@
+<div class="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 bg-mc-bg-base relative overflow-hidden">
+  <!-- Ambient blobs -->
+  <div class="absolute top-[5%] left-[15%] w-96 h-96 bg-mc-primary-soft rounded-full mix-blend-multiply filter blur-[120px] opacity-60 animate-pulse"></div>
+  <div class="absolute bottom-[5%] right-[10%] w-96 h-96 bg-mc-accent rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-pulse" style="animation-delay: 3s;"></div>
+
+  <div class="max-w-lg w-full z-10 text-center flex flex-col items-center gap-6">
+
+    <!-- Big 404 glass card -->
+    <div class="liquid-glass-panel w-full rounded-[2.5rem] p-10 sm:p-14 flex flex-col items-center gap-6 shadow-2xl">
+
+      <!-- Animated icon -->
+      <div class="w-24 h-24 liquid-glass-btn !rounded-3xl border border-mc-glass-border shadow-xl flex items-center justify-center">
+        <i class="pi pi-exclamation-triangle text-white text-5xl drop-shadow-lg"></i>
+      </div>
+
+      <!-- Big number -->
+      <div class="text-[6rem] sm:text-[8rem] font-black leading-none text-mc-primary drop-shadow-md tracking-tighter select-none">
+        404
+      </div>
+
+      <!-- Message -->
+      <div class="flex flex-col items-center gap-2">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-mc-text-primary tracking-tight">Página no encontrada</h1>
+        <p class="text-mc-text-secondary font-medium text-sm sm:text-base max-w-xs">
+          La ruta que intentas acceder no existe o fue movida. Verifica la URL o regresa al inicio.
+        </p>
+      </div>
+
+      <!-- Divider -->
+      <div class="w-full h-px bg-mc-glass-border"></div>
+
+      <!-- Actions -->
+      <div class="flex flex-col sm:flex-row items-center gap-3 w-full">
+        <button
+          (click)="goBack()"
+          class="liquid-glass-btn w-full sm:w-auto px-6 py-3 !bg-white/20 border-mc-glass-border text-mc-text-primary hover:!bg-white/40 font-bold rounded-xl transition-all text-sm">
+          <i class="pi pi-arrow-left mr-2"></i>Regresar
+        </button>
+        <button
+          (click)="goHome()"
+          class="liquid-glass-btn w-full sm:w-auto px-6 py-3 font-bold rounded-xl transition-all text-sm">
+          <i class="pi pi-home mr-2"></i>Ir al Inicio
+        </button>
+      </div>
+    </div>
+
+    <p class="text-mc-text-secondary/60 text-xs font-medium">© 2026 MediControl System</p>
+  </div>
+</div>
