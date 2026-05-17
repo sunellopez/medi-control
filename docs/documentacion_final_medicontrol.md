@@ -1277,675 +1277,613 @@ FIN FUNCIÓN
 
 ```
 ┌────────────────────┐
+│       roles        │
+├────────────────────┤
+│ PK │ id            │
+│    │ name (unique) │
+└─────────┬──────────┘
+          │
+          │ 1:N
+          │
+┌─────────▼──────────┐
 │       users        │
 ├────────────────────┤
 │ PK │ id            │
-│    │ nombre        │
+│ FK │ role_id       │
+│    │ name          │
 │    │ email (unique)│
 │    │ password      │
-│    │ rol (enum)    │
-│    │ activo        │
+│    │ is_active     │
 │    │ timestamps    │
 └─────────┬──────────┘
-          │
-          │ 1:N hereda
-          │
-    ┌─────┴─────┐
-    │           │
-┌───▼────┐ ┌───▼────┐
-│ medicos│ │recep.  │
-├────────┤ ├────────┤
-│PK│id   │ │PK│id   │
-│FK│u_id │ │FK│u_id │
-│  │ced. │ │  │turn │
-│  │esp. │ └────────┘
-└───┬────┘
-    │
-    │ 1:N atiende
-    │
-┌───▼────────────────┐         ┌────────────────────┐
-│       citas        │         │     pacientes      │
-├────────────────────┤         ├────────────────────┤
-│ PK │ id            │ N:1     │ PK │ id            │
-│ FK │ paciente_id   │◄────────│    │ nombre        │
-│ FK │ medico_id     │         │    │ fecha_nac     │
-│    │ fecha         │         │    │ sexo          │
-│    │ hora          │         │    │ telefono      │
-│    │ tipo          │         │    │ email         │
-│    │ estado (enum) │         │    │ tipo_sangre   │
-│    │ motivo        │         │    │ alergias      │
-│    │ recordatorio_e│         │    │ direccion     │
-│    │ folio (unique)│         │    │ timestamps    │
-│    │ timestamps    │         └────────┬───────────┘
-└────────────────────┘                  │
-                                        │ 1:N tiene
-                                        │
-                              ┌─────────▼───────────┐
-                              │    expedientes      │
-                              ├─────────────────────┤
-                              │ PK │ id             │
-                              │ FK │ paciente_id    │
-                              │ FK │ medico_id      │
-                              │    │ fecha_consulta │
-                              │    │ sintomas       │
-                              │    │ diagnostico    │
-                              │    │ tratamiento    │
-                              │    │ observaciones  │
-                              │    │ presion_art    │
-                              │    │ peso           │
-                              │    │ estatura       │
-                              │    │ temperatura    │
-                              │    │ timestamps     │
-                              └─────────────────────┘
-
+          ├──────────────────────────────────────┐
+          │ 1:1                                  │ 1:1
+          │                                      │
+┌─────────▼──────────┐                 ┌─────────▼──────────┐
+│      doctors       │                 │      patients      │
+├────────────────────┤                 ├────────────────────┤
+│ PK │ id            │                 │ PK │ id            │
+│ FK │ user_id       │                 │ FK │ user_id (null)│
+│    │ specialty     │                 │    │ first_name    │
+│    │ license_number│                 │    │ last_name     │
+│    │ phone         │                 │    │ date_of_birth │
+│    │ timestamps    │                 │    │ gender        │
+└─────────┬──────────┘                 │    │ phone         │
+          │                            │    │ address       │
+          │ 1:N                        │    │ emergency_cont│
+          │                            │    │ emergency_phon│
+          │                            │    │ timestamps    │
+          │                            └─────────┬──────────┘
+          │                                      │
+          │                                      │ 1:N
+          │                                      │
+          │           ┌──────────────────────────┘
+          │ 1:N       │
+┌─────────▼───────────▼┐               ┌─────────▼──────────┐
+│     appointments     │               │  medical_records   │
+├──────────────────────┤               ├────────────────────┤
+│ PK │ id              │               │ PK │ id            │
+│ FK │ patient_id      │               │ FK │ patient_id    │
+│ FK │ doctor_id       │               │ FK │ doctor_id     │
+│    │ appointment_date│               │    │ symptoms      │
+│    │ status (enum)   │               │    │ diagnosis     │
+│    │ notes           │               │    │ treatment     │
+│    │ timestamps      │               │    │ notes         │
+└──────────────────────┘               │    │ timestamps    │
+                                       └────────────────────┘
 
 ┌────────────────────────────┐
-│      medicamentos          │
+│      medications           │
 ├────────────────────────────┤
 │ PK │ id                    │
-│    │ nombre                │
-│    │ descripcion           │
-│    │ lote                  │
-│    │ fecha_caducidad       │
-│    │ stock_actual          │
-│    │ stock_minimo          │
-│    │ precio_unitario       │
-│    │ disponible            │
+│    │ name                  │
+│    │ description           │
+│    │ batch                 │
+│    │ expiration_date       │
+│    │ current_stock         │
+│    │ minimum_stock         │
+│    │ unit_price            │
 │    │ timestamps            │
 └──────────┬─────────────────┘
            │
-           │ 1:N registra
+           │ 1:N
            │
 ┌──────────▼─────────────────┐
-│  movimientos_inventario    │
+│     inventory_movements    │
 ├────────────────────────────┤
 │ PK │ id                    │
-│ FK │ medicamento_id        │
-│ FK │ usuario_id            │
-│    │ tipo (E/S/A)          │
-│    │ cantidad              │
-│    │ motivo                │
-│    │ stock_anterior        │
-│    │ stock_nuevo           │
+│ FK │ medication_id         │
+│ FK │ user_id (null)        │
+│    │ type (in/out/adjust)  │
+│    │ quantity              │
+│    │ reason                │
 │    │ timestamps            │
 └────────────────────────────┘
 ```
 
+---
+
 ### 4.1.2 Diccionario de Datos
+
+**Tabla: roles**
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---------------|-------------|
+| id | BIGINT | PK, AUTO_INCREMENT | Identificador único |
+| name | VARCHAR(50) | NOT NULL, UNIQUE | Nombre del rol (admin, doctor, receptionist, patient) |
+| created_at | TIMESTAMP | NULL | Fecha de creación |
+| updated_at | TIMESTAMP | NULL | Última actualización |
 
 **Tabla: users**
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
-| id | INT | PK, AUTO_INCREMENT | Identificador único |
-| nombre | VARCHAR(100) | NOT NULL | Nombre completo del usuario |
-| email | VARCHAR(100) | NOT NULL, UNIQUE | Email de acceso (login) |
-| password | VARCHAR(255) | NOT NULL | Contraseña encriptada (bcrypt) |
-| rol | ENUM('admin','medico','recepcion') | NOT NULL | Rol del usuario |
-| activo | BOOLEAN | DEFAULT TRUE | Usuario activo/inactivo |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Fecha de creación |
-| updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Última actualización |
+| id | BIGINT | PK, AUTO_INCREMENT | Identificador único |
+| name | VARCHAR(255) | NOT NULL | Nombre completo del usuario |
+| email | VARCHAR(255) | NOT NULL, UNIQUE | Email de acceso (login) |
+| password | VARCHAR(255) | NOT NULL | Contraseña encriptada |
+| role_id | BIGINT | FK → roles(id), NOT NULL | ID del rol asignado |
+| is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | Define si el usuario tiene permitido loguearse |
+| created_at | TIMESTAMP | NULL | Fecha de creación |
+| updated_at | TIMESTAMP | NULL | Última actualización |
 
-**Tabla: pacientes**
+**Tabla: doctors**
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
-| id | INT | PK, AUTO_INCREMENT | Identificador único |
-| nombre | VARCHAR(150) | NOT NULL | Nombre completo del paciente |
-| fecha_nacimiento | DATE | NOT NULL | Fecha de nacimiento |
-| sexo | CHAR(1) | NOT NULL | M=Masculino, F=Femenino |
-| telefono | VARCHAR(15) | NULL | Teléfono de contacto |
-| email | VARCHAR(100) | NULL | Email del paciente |
-| tipo_sangre | VARCHAR(5) | NULL | Tipo de sangre (O+, A-, etc.) |
-| alergias | TEXT | NULL | Alergias conocidas |
-| direccion | VARCHAR(255) | NULL | Dirección completa |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Fecha de registro |
-| updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Última actualización |
+| id | BIGINT | PK, AUTO_INCREMENT | Identificador único del médico |
+| user_id | BIGINT | FK → users(id), NOT NULL | Usuario asociado |
+| specialty | VARCHAR(255) | NOT NULL | Especialidad médica |
+| license_number | VARCHAR(255) | NOT NULL | Cédula profesional |
+| phone | VARCHAR(255) | NOT NULL | Teléfono del médico |
+| created_at | TIMESTAMP | NULL | Fecha de registro |
+| updated_at | TIMESTAMP | NULL | Última actualización |
 
-**Índices:**
-- INDEX idx_nombre ON pacientes(nombre)
-- INDEX idx_telefono ON pacientes(telefono)
-
-**Tabla: citas**
+**Tabla: patients**
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
-| id | INT | PK, AUTO_INCREMENT | Identificador único |
-| paciente_id | INT | FK → pacientes(id), NOT NULL | Paciente de la cita |
-| medico_id | INT | FK → users(id), NOT NULL | Médico asignado |
-| fecha | DATE | NOT NULL | Fecha de la cita |
-| hora | TIME | NOT NULL | Hora de la cita |
-| tipo | VARCHAR(50) | NOT NULL | Tipo de consulta |
-| estado | ENUM('agendada','atendida','cancelada','no_asistio') | DEFAULT 'agendada' | Estado actual |
-| motivo | TEXT | NULL | Motivo de la consulta |
-| recordatorio_enviado | BOOLEAN | DEFAULT FALSE | Si se envió recordatorio |
-| folio | VARCHAR(30) | UNIQUE, NOT NULL | Folio único (CITA-YYYYMMDD-XXXX) |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Fecha de creación |
-| updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Última actualización |
+| id | BIGINT | PK, AUTO_INCREMENT | Identificador único del paciente |
+| user_id | BIGINT | FK → users(id), NULLABLE | Cuenta de usuario asociada (opcional) |
+| first_name | VARCHAR(255) | NOT NULL | Nombre del paciente |
+| last_name | VARCHAR(255) | NOT NULL | Apellido del paciente |
+| date_of_birth | DATE | NOT NULL | Fecha de nacimiento |
+| gender | ENUM('male', 'female', 'other') | NOT NULL | Género del paciente |
+| phone | VARCHAR(30) | NULLABLE | Teléfono |
+| address | TEXT | NULLABLE | Dirección física |
+| emergency_contact | VARCHAR(255) | NULLABLE | Contacto de emergencia |
+| emergency_phone | VARCHAR(30) | NULLABLE | Teléfono del contacto de emergencia |
+| created_at | TIMESTAMP | NULL | Fecha de creación |
+| updated_at | TIMESTAMP | NULL | Última actualización |
 
-**Índices:**
-- INDEX idx_fecha ON citas(fecha)
-- INDEX idx_medico_fecha ON citas(medico_id, fecha)
-- UNIQUE INDEX idx_folio ON citas(folio)
-
-**Tabla: expedientes**
+**Tabla: appointments**
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
-| id | INT | PK, AUTO_INCREMENT | Identificador único |
-| paciente_id | INT | FK → pacientes(id), NOT NULL | Paciente del expediente |
-| medico_id | INT | FK → users(id), NOT NULL | Médico que atendió |
-| fecha_consulta | DATETIME | NOT NULL | Fecha y hora de consulta |
-| sintomas | TEXT | NULL | Síntomas reportados |
-| diagnostico | TEXT | NOT NULL | Diagnóstico médico |
-| tratamiento | TEXT | NOT NULL | Tratamiento prescrito |
-| observaciones | TEXT | NULL | Observaciones adicionales |
-| presion_arterial | VARCHAR(10) | NULL | Presión arterial (120/80) |
-| peso | DECIMAL(5,2) | NULL | Peso en kg |
-| estatura | DECIMAL(4,2) | NULL | Estatura en metros |
-| temperatura | DECIMAL(4,2) | NULL | Temperatura en °C |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Fecha de registro |
-| updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Última actualización |
+| id | BIGINT | PK, AUTO_INCREMENT | Identificador único |
+| patient_id | BIGINT | FK → patients(id), NOT NULL | Paciente asociado |
+| doctor_id | BIGINT | FK → doctors(id), NOT NULL | Médico asignado |
+| appointment_date | DATETIME | NOT NULL | Fecha y hora programada de la cita |
+| status | ENUM('scheduled', 'completed', 'canceled') | NOT NULL, DEFAULT 'scheduled' | Estado actual de la cita |
+| notes | TEXT | NULLABLE | Anotaciones de la cita |
+| created_at | TIMESTAMP | NULL | Fecha de creación |
+| updated_at | TIMESTAMP | NULL | Última actualización |
 
-**Índices:**
-- INDEX idx_paciente ON expedientes(paciente_id)
-- INDEX idx_fecha ON expedientes(fecha_consulta)
-
-**Tabla: medicamentos**
+**Tabla: medical_records**
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
-| id | INT | PK, AUTO_INCREMENT | Identificador único |
-| nombre | VARCHAR(150) | NOT NULL | Nombre del medicamento |
-| descripcion | TEXT | NULL | Descripción/Presentación |
-| lote | VARCHAR(50) | NULL | Número de lote |
-| fecha_caducidad | DATE | NOT NULL | Fecha de caducidad |
-| stock_actual | INT | DEFAULT 0, CHECK >= 0 | Stock actual |
-| stock_minimo | INT | DEFAULT 10 | Stock mínimo |
-| precio_unitario | DECIMAL(8,2) | DEFAULT 0 | Precio por unidad |
-| disponible | BOOLEAN | DEFAULT TRUE | Disponible para salida |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Fecha de registro |
-| updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | Última actualización |
+| id | BIGINT | PK, AUTO_INCREMENT | Identificador único |
+| patient_id | BIGINT | FK → patients(id), NOT NULL | Paciente asociado |
+| doctor_id | BIGINT | FK → doctors(id), NOT NULL | Médico que atendió la consulta |
+| symptoms | TEXT | NOT NULL | Ficha SOAP: Síntomas referidos (Subjetivo) |
+| diagnosis | TEXT | NOT NULL | Ficha SOAP: Diagnóstico clínico (Objetivo) |
+| treatment | TEXT | NULLABLE | Ficha SOAP: Tratamiento y receta (Plan) |
+| notes | TEXT | NULLABLE | Notas adicionales |
+| created_at | TIMESTAMP | NULL | Fecha de la consulta |
+| updated_at | TIMESTAMP | NULL | Última actualización |
 
-**Índices:**
-- INDEX idx_nombre ON medicamentos(nombre)
-- INDEX idx_caducidad ON medicamentos(fecha_caducidad)
-- INDEX idx_stock ON medicamentos(stock_actual)
-
-**Tabla: movimientos_inventario**
+**Tabla: medications**
 | Campo | Tipo | Restricciones | Descripción |
 |-------|------|---------------|-------------|
-| id | INT | PK, AUTO_INCREMENT | Identificador único |
-| medicamento_id | INT | FK → medicamentos(id), NOT NULL | Medicamento afectado |
-| usuario_id | INT | FK → users(id), NOT NULL | Usuario que registra |
-| tipo | ENUM('E','S','A') | NOT NULL | E=Entrada, S=Salida, A=Ajuste |
-| cantidad | INT | NOT NULL | Cantidad del movimiento |
-| motivo | VARCHAR(255) | NULL | Motivo del movimiento |
-| stock_anterior | INT | NOT NULL | Stock antes del movimiento |
-| stock_nuevo | INT | NOT NULL | Stock después del movimiento |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Fecha del movimiento |
+| id | BIGINT | PK, AUTO_INCREMENT | Identificador único del fármaco |
+| name | VARCHAR(255) | NOT NULL | Nombre comercial/fórmula del fármaco |
+| description | TEXT | NULLABLE | Descripción o especificaciones |
+| batch | VARCHAR(255) | NULLABLE | Código de lote de producción |
+| expiration_date | DATE | NULLABLE | Fecha de caducidad |
+| current_stock | INT | NOT NULL, DEFAULT 0 | Existencias actuales en bodega |
+| minimum_stock | INT | NOT NULL, DEFAULT 0 | Límite mínimo para alerta de reabasto |
+| unit_price | DECIMAL(8,2) | NULLABLE, DEFAULT 0.00 | Precio por unidad |
+| created_at | TIMESTAMP | NULL | Fecha de registro |
+| updated_at | TIMESTAMP | NULL | Última actualización |
 
-**Índices:**
-- INDEX idx_medicamento ON movimientos_inventario(medicamento_id)
-- INDEX idx_fecha ON movimientos_inventario(created_at)
+**Tabla: inventory_movements**
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---------------|-------------|
+| id | BIGINT | PK, AUTO_INCREMENT | Identificador del movimiento |
+| medication_id | BIGINT | FK → medications(id), NOT NULL | Medicamento afectado |
+| user_id | BIGINT | FK → users(id), NULLABLE | Usuario que registró el movimiento |
+| type | ENUM('in', 'out', 'adjustment') | NOT NULL | Tipo de movimiento registrado |
+| quantity | INT | NOT NULL | Cantidad de unidades transaccionadas |
+| reason | TEXT | NULLABLE | Motivo de la entrada o salida |
+| created_at | TIMESTAMP | NULL | Fecha de la transacción |
+| updated_at | TIMESTAMP | NULL | Última actualización |
 
 ---
 
 ## 4.2 API REST - Documentación de Endpoints
 
+Todas las solicitudes (excepto el login) requieren el header:
+`Authorization: Bearer {access_token}`
+
+---
+
 ### 4.2.1 Autenticación
 
 **POST /api/auth/login**
-```json
-Request:
-{
-  "email": "medico@clinica.com",
-  "password": "password123"
-}
-
-Response 200:
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "token_type": "Bearer",
-  "expires_in": 28800,
-  "user": {
-    "id": 1,
-    "nombre": "Dr. Juan Pérez",
-    "email": "medico@clinica.com",
-    "rol": "medico"
-  }
-}
-
-Response 401:
-{
-  "message": "Credenciales incorrectas"
-}
-```
+*   **Request:**
+    ```json
+    {
+      "email": "admin@medicontrol.com",
+      "password": "password123"
+    }
+    ```
+*   **Response 200 (Éxito):**
+    ```json
+    {
+      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+      "token_type": "Bearer",
+      "expires_in": 31536000,
+      "user": {
+        "id": 1,
+        "name": "Administrador General",
+        "email": "admin@medicontrol.com",
+        "role_name": "admin",
+        "is_active": true
+      }
+    }
+    ```
+*   **Response 401 (Credenciales Incorrectas):**
+    ```json
+    {
+      "message": "These credentials do not match our records."
+    }
+    ```
+*   **Response 422 (Usuario Bloqueado / Inactivo):**
+    ```json
+    {
+      "message": "Su usuario ha sido bloqueado por el administrador.",
+      "errors": {
+        "email": ["Su usuario ha sido bloqueado por el administrador."]
+      }
+    }
+    ```
 
 **POST /api/auth/logout**
-```
-Headers: Authorization: Bearer {token}
-
-Response 200:
-{
-  "message": "Sesión cerrada exitosamente"
-}
-```
+*   **Response 200:**
+    ```json
+    {
+      "message": "Successfully logged out"
+    }
+    ```
 
 ---
 
 ### 4.2.2 Pacientes
 
-**GET /api/pacientes**
-```
-Headers: Authorization: Bearer {token}
-Query Params:
-  - search (opcional): Buscar por nombre
-  - page (opcional): Número de página
-  - per_page (opcional): Registros por página (default: 20)
+**GET /api/patients**
+*   **Query Params (Opcionales):**
+    *   `search`: Filtro por nombre o apellido
+*   **Response 200:**
+    ```json
+    [
+      {
+        "id": 1,
+        "first_name": "Juan",
+        "last_name": "Pérez García",
+        "date_of_birth": "1980-05-15",
+        "gender": "male",
+        "phone": "+527411155283",
+        "address": "Calle Principal #123, Col. Centro",
+        "emergency_contact": "María Pérez",
+        "emergency_phone": "7411234567",
+        "user_id": null
+      }
+    ]
+    ```
 
-Response 200:
-{
-  "data": [
+**POST /api/patients**
+*   **Request:**
+    ```json
     {
-      "id": 1,
-      "nombre": "Juan Pérez García",
-      "fecha_nacimiento": "1980-05-15",
-      "edad": 45,
-      "sexo": "M",
-      "telefono": "442-123-4567",
-      "email": "juan@email.com",
-      "tipo_sangre": "O+",
-      "ultima_visita": "2025-12-15"
+      "first_name": "María",
+      "last_name": "García López",
+      "date_of_birth": "1985-03-20",
+      "gender": "female",
+      "phone": "7411155283",
+      "address": "Avenida Reforma #456",
+      "emergency_contact": "José García",
+      "emergency_phone": "7417654321"
     }
-  ],
-  "meta": {
-    "current_page": 1,
-    "total": 642,
-    "per_page": 20
-  }
-}
-```
+    ```
+*   **Response 201 (Creado):**
+    ```json
+    {
+      "id": 2,
+      "first_name": "María",
+      "last_name": "García López",
+      "date_of_birth": "1985-03-20",
+      "gender": "female",
+      "phone": "+527411155283",
+      "address": "Avenida Reforma #456",
+      "emergency_contact": "José García",
+      "emergency_phone": "7417654321",
+      "user_id": 4
+    }
+    ```
+    *(Nota: El backend asocia automáticamente el `user_id` del token si el usuario autenticado tiene el rol `patient` o crea una vinculación segura).*
 
-**POST /api/pacientes**
-```
-Headers: Authorization: Bearer {token}
-Request:
-{
-  "nombre": "María García López",
-  "fecha_nacimiento": "1985-03-20",
-  "sexo": "F",
-  "telefono": "442-987-6543",
-  "email": "maria@email.com",
-  "tipo_sangre": "A+",
-  "alergias": "Penicilina",
-  "direccion": "Calle Principal #123, Col. Centro"
-}
+**PUT /api/patients/{id}**
+*   **Request:** Campos a actualizar.
+*   **Response 200:** Objeto paciente actualizado.
 
-Response 201:
-{
-  "message": "Paciente registrado exitosamente",
-  "paciente": {
-    "id": 643,
-    "nombre": "María García López",
-    ...
-  }
-}
-
-Response 422: // Validación fallida
-{
-  "message": "Error de validación",
-  "errors": {
-    "email": ["El email ya está registrado"],
-    "telefono": ["El formato del teléfono es inválido"]
-  }
-}
-```
+**DELETE /api/patients/{id}**
+*   **Response 200:**
+    ```json
+    {
+      "message": "Patient deleted successfully."
+    }
+    ```
 
 ---
 
 ### 4.2.3 Citas
 
-**GET /api/citas**
-```
-Headers: Authorization: Bearer {token}
-Query Params:
-  - fecha (opcional): Filtrar por fecha específica
-  - medico_id (opcional): Filtrar por médico
-  - estado (opcional): Filtrar por estado
-
-Response 200:
-{
-  "data": [
-    {
-      "id": 1,
-      "folio": "CITA-20260121-0042",
-      "paciente": {
+**GET /api/appointments**
+*   **Response 200:**
+    ```json
+    [
+      {
         "id": 1,
-        "nombre": "Juan Pérez García"
-      },
-      "medico": {
-        "id": 2,
-        "nombre": "Dra. Ana López"
-      },
-      "fecha": "2026-01-25",
-      "hora": "10:00:00",
-      "tipo": "Consulta General",
-      "estado": "agendada",
-      "motivo": "Revisión de presión arterial"
+        "patient_id": 1,
+        "doctor_id": 1,
+        "appointment_date": "2026-05-18 10:00:00",
+        "status": "scheduled",
+        "notes": "Consulta de control mensual",
+        "patient": {
+          "id": 1,
+          "first_name": "Juan",
+          "last_name": "Pérez"
+        },
+        "doctor": {
+          "id": 1,
+          "user_id": 2,
+          "specialty": "Cardiología",
+          "user": {
+            "name": "Dr. Luis Castañeda"
+          }
+        }
+      }
+    ]
+    ```
+
+**POST /api/appointments**
+*   **Request:**
+    ```json
+    {
+      "patient_id": 1,
+      "doctor_id": 1,
+      "appointment_date": "2026-05-18 10:00:00",
+      "status": "scheduled",
+      "notes": "Revisión general"
     }
-  ]
-}
-```
+    ```
+*   **Response 201:** Objeto cita creado.
 
-**POST /api/citas**
-```
-Headers: Authorization: Bearer {token}
-Request:
-{
-  "paciente_id": 1,
-  "medico_id": 2,
-  "fecha": "2026-01-25",
-  "hora": "10:00",
-  "tipo": "Consulta General",
-  "motivo": "Revisión de presión arterial",
-  "enviar_recordatorio_email": true,
-  "enviar_recordatorio_sms": true
-}
+**PUT /api/appointments/{id}**
+*   **Request:**
+    ```json
+    {
+      "appointment_date": "2026-05-18 11:30:00",
+      "status": "scheduled",
+      "notes": "Horario modificado por solicitud del paciente"
+    }
+    ```
+*   **Response 200:** Objeto cita actualizado.
 
-Response 201:
-{
-  "message": "Cita registrada exitosamente",
-  "cita": {
-    "id": 245,
-    "folio": "CITA-20260125-0245",
-    "paciente": {...},
-    "medico": {...},
-    "fecha": "2026-01-25",
-    "hora": "10:00:00"
-  }
-}
-
-Response 422: // Horario no disponible
-{
-  "message": "El horario seleccionado no está disponible",
-  "sugerencias": [
-    {"fecha": "2026-01-25", "hora": "10:30"},
-    {"fecha": "2026-01-25", "hora": "11:00"},
-    {"fecha": "2026-01-25", "hora": "14:00"}
-  ]
-}
-```
-
-**PUT /api/citas/{id}**
-```
-Headers: Authorization: Bearer {token}
-Request:
-{
-  "fecha": "2026-01-26",
-  "hora": "11:00",
-  "estado": "agendada"
-}
-
-Response 200:
-{
-  "message": "Cita actualizada exitosamente",
-  "cita": {...}
-}
-```
-
-**DELETE /api/citas/{id}**
-```
-Headers: Authorization: Bearer {token}
-
-Response 200:
-{
-  "message": "Cita cancelada exitosamente"
-}
-```
+**DELETE /api/appointments/{id}**
+*   **Response 200:**
+    ```json
+    {
+      "message": "Appointment deleted successfully"
+    }
+    ```
 
 ---
 
-### 4.2.4 Expedientes
+### 4.2.4 Expedientes Clínicos (SOAP)
 
-**GET /api/expedientes/{paciente_id}**
-```
-Headers: Authorization: Bearer {token}
+**GET /api/medical-records**
+*   **Response 200:**
+    ```json
+    [
+      {
+        "id": 1,
+        "patient_id": 1,
+        "doctor_id": 1,
+        "symptoms": "Cefalea tensional e insomnio leve.",
+        "diagnosis": "Estrés agudo laboral.",
+        "treatment": "Paracetamol 500mg c/8h por 3 días. Reposo absoluto de pantallas.",
+        "notes": "Seguimiento en 2 semanas si persisten los síntomas.",
+        "patient": {
+          "first_name": "Juan",
+          "last_name": "Pérez"
+        },
+        "doctor": {
+          "specialty": "Medicina General",
+          "user": {
+            "name": "Dr. Luis Castañeda"
+          }
+        }
+      }
+    ]
+    ```
 
-Response 200:
-{
-  "paciente": {
-    "id": 1,
-    "nombre": "Juan Pérez García",
-    "fecha_nacimiento": "1980-05-15",
-    "tipo_sangre": "O+",
-    "alergias": "Ninguna"
-  },
-  "expedientes": [
+**POST /api/medical-records**
+*   **Request:**
+    ```json
     {
-      "id": 50,
-      "fecha_consulta": "2025-12-15 09:30:00",
-      "medico": {
-        "id": 2,
-        "nombre": "Dra. Ana López"
-      },
-      "sintomas": "Dolor de cabeza, fatiga",
-      "diagnostico": "Hipertensión arterial controlada",
-      "tratamiento": "Losartán 50mg cada 24 horas",
-      "presion_arterial": "130/85",
-      "peso": 75.5,
-      "observaciones": "Control en 30 días"
-    },
-    ...
-  ]
-}
-```
+      "patient_id": 1,
+      "doctor_id": 1,
+      "symptoms": "Dolor de garganta y fiebre de 38.5°C",
+      "diagnosis": "Faringoamigdalitis aguda bacteriana",
+      "treatment": "Amoxicilina 500mg c/8h por 7 días",
+      "notes": "Recomendar abundantes líquidos y reposo vocal"
+    }
+    ```
+*   **Response 201:** Objeto expediente creado.
 
-**POST /api/expedientes**
-```
-Headers: Authorization: Bearer {token}
-Request:
-{
-  "paciente_id": 1,
-  "sintomas": "Dolor de pecho, dificultad para respirar",
-  "diagnostico": "Posible angina de pecho",
-  "tratamiento": "Nitroglicerina sublingual PRN, referencia a cardiólogo",
-  "observaciones": "Realizar electrocardiograma urgente",
-  "presion_arterial": "140/95",
-  "peso": 76.2,
-  "estatura": 1.75,
-  "temperatura": 36.8
-}
+**PUT /api/medical-records/{id}**
+*   **Response 200:** Objeto expediente actualizado.
 
-Response 201:
-{
-  "message": "Consulta registrada exitosamente",
-  "expediente": {
-    "id": 51,
-    ...
-  },
-  "pdf_url": "/api/expedientes/51/pdf"
-}
-```
-
-**GET /api/expedientes/{id}/pdf**
-```
-Headers: Authorization: Bearer {token}
-
-Response 200: 
-[Archivo PDF descargable con receta médica]
-```
+**DELETE /api/medical-records/{id}**
+*   **Response 200:**
+    ```json
+    {
+      "message": "Medical record deleted successfully"
+    }
+    ```
 
 ---
 
 ### 4.2.5 Medicamentos e Inventario
 
-**GET /api/medicamentos**
-```
-Headers: Authorization: Bearer {token}
-Query Params:
-  - search (opcional): Buscar por nombre
-  - stock_bajo (opcional): true/false
-  - proximos_caducar (opcional): true/false
+**GET /api/inventory/medications**
+*   **Response 200:**
+    ```json
+    [
+      {
+        "id": 1,
+        "name": "Paracetamol 500mg",
+        "description": "Caja de 20 tabletas",
+        "batch": "L-PAR102",
+        "expiration_date": "2028-10-15",
+        "current_stock": 150,
+        "minimum_stock": 20,
+        "unit_price": "45.00"
+      }
+    ]
+    ```
 
-Response 200:
-{
-  "data": [
+**POST /api/inventory/medications**
+*   **Request:**
+    ```json
     {
-      "id": 1,
-      "nombre": "Paracetamol 500mg",
-      "descripcion": "Caja con 10 tabletas",
-      "lote": "LOT-2025-001",
-      "fecha_caducidad": "2026-12-31",
-      "stock_actual": 50,
-      "stock_minimo": 20,
-      "precio_unitario": 15.50,
-      "disponible": true,
-      "dias_para_caducidad": 349,
-      "alerta_stock": false,
-      "alerta_caducidad": false
-    },
-    {
-      "id": 2,
-      "nombre": "Losartán 50mg",
-      "stock_actual": 5,
-      "stock_minimo": 10,
-      "alerta_stock": true,  // Stock bajo!
-      ...
+      "name": "Ibuprofeno 400mg",
+      "description": "Caja de 10 tabletas",
+      "batch": "L-IBU304",
+      "expiration_date": "2028-12-01",
+      "current_stock": 80,
+      "minimum_stock": 15,
+      "unit_price": "65.50"
     }
-  ]
-}
-```
+    ```
+*   **Response 201:** Objeto medicamento creado.
 
-**POST /api/medicamentos**
-```
-Headers: Authorization: Bearer {token}
-Request:
-{
-  "nombre": "Ibuprofeno 400mg",
-  "descripcion": "Caja con 20 tabletas",
-  "lote": "LOT-2026-015",
-  "fecha_caducidad": "2027-06-30",
-  "stock_actual": 100,
-  "stock_minimo": 30,
-  "precio_unitario": 25.00
-}
+**PUT /api/inventory/medications/{id}**
+*   **Response 200:** Objeto medicamento actualizado.
 
-Response 201:
-{
-  "message": "Medicamento registrado exitosamente",
-  "medicamento": {...}
-}
-```
+**DELETE /api/inventory/medications/{id}**
+*   **Response 200:**
+    ```json
+    {
+      "message": "Medication deleted successfully"
+    }
+    ```
 
-**POST /api/inventario/movimiento**
-```
-Headers: Authorization: Bearer {token}
-Request:
-{
-  "medicamento_id": 1,
-  "tipo": "S",  // E=Entrada, S=Salida, A=Ajuste
-  "cantidad": 10,
-  "motivo": "Venta mostrador"
-}
-
-Response 201:
-{
-  "message": "Movimiento registrado exitosamente",
-  "movimiento": {
-    "id": 150,
-    "medicamento": "Paracetamol 500mg",
-    "tipo": "Salida",
-    "cantidad": 10,
-    "stock_anterior": 50,
-    "stock_nuevo": 40
-  },
-  "alertas": []  // Si se generaron alertas
-}
-
-Response 422: // Stock insuficiente
-{
-  "message": "Stock insuficiente",
-  "stock_actual": 5,
-  "cantidad_solicitada": 10
-}
-```
+**POST /api/inventory/movements**
+*   **Request:**
+    ```json
+    {
+      "medication_id": 1,
+      "type": "out",
+      "quantity": 5,
+      "reason": "Suministro directo en consulta"
+    }
+    ```
+*   **Response 201:**
+    ```json
+    {
+      "message": "Movement recorded successfully",
+      "movement": {
+        "id": 10,
+        "medication_id": 1,
+        "type": "out",
+        "quantity": 5,
+        "reason": "Suministro directo en consulta",
+        "user_id": 1
+      }
+    }
+    ```
 
 ---
 
 ### 4.2.6 Reportes y Estadísticas
 
-**GET /api/dashboard**
-```
-Headers: Authorization: Bearer {token}
-
-Response 200:
-{
-  "estadisticas": {
-    "citas_hoy": 18,
-    "citas_pendientes": 5,
-    "pacientes_activos": 642,
-    "medicamentos_stock_bajo": 3
-  },
-  "citas_hoy": [
+**GET /api/reports/dashboard-stats**
+*   **Response 200 (Administrador - Vista Global):**
+    ```json
     {
-      "hora": "09:00",
-      "paciente": "Juan Pérez",
-      "medico": "Dr. Martínez",
-      "estado": "atendida"
-    },
-    ...
-  ],
-  "alertas": [
-    {
-      "tipo": "STOCK_BAJO",
-      "mensaje": "Losartán 50mg: solo 5 unidades disponibles",
-      "urgencia": "ALTA"
-    },
-    {
-      "tipo": "CITA_SIN_CONFIRMAR",
-      "mensaje": "5 pacientes no han confirmado cita de hoy",
-      "urgencia": "MEDIA"
+      "activeDoctors": 5,
+      "lowStockMedications": 2,
+      "scheduledAppointments": 8,
+      "totalPatients": 120
     }
-  ]
-}
-```
-
-**GET /api/reportes/consultas**
-```
-Headers: Authorization: Bearer {token}
-Query Params:
-  - fecha_inicio: Fecha inicial del reporte
-  - fecha_fin: Fecha final del reporte
-  - medico_id (opcional): Filtrar por médico
-  - formato (opcional): json|pdf|excel
-
-Response 200:
-{
-  "periodo": {
-    "inicio": "2026-01-01",
-    "fin": "2026-01-31"
-  },
-  "total_consultas": 450,
-  "por_medico": [
+    ```
+*   **Response 200 (Médico - Vista Restringida a su consulta):**
+    ```json
     {
-      "medico": "Dra. Ana López",
-      "total_consultas": 180,
-      "promedio_diario": 8.2
-    },
-    ...
-  ],
-  "por_tipo": [
-    {
-      "tipo": "Consulta General",
-      "total": 280
-    },
-    {
-      "tipo": "Seguimiento",
-      "total": 120
-    },
-    {
-      "tipo": "Primera Vez",
-      "total": 50
+      "activeDoctors": null,
+      "lowStockMedications": 2,
+      "scheduledAppointments": 3,
+      "totalPatients": 45
     }
-  ]
-}
-```
+    ```
+    *(Nota: El backend restringe la información de médicos activos y el total de pacientes globales a no administradores, y acota las citas/pacientes a los asignados al doctor autenticado).*
+
+---
+
+### 4.2.7 Usuarios y Roles (Administrativo)
+
+**GET /api/users**
+*   **Response 200:**
+    ```json
+    [
+      {
+        "id": 1,
+        "name": "Administrador",
+        "email": "admin@medicontrol.com",
+        "role_name": "admin",
+        "is_active": true,
+        "doctor": null
+      },
+      {
+        "id": 2,
+        "name": "Dr. Luis Castañeda",
+        "email": "luis@medicontrol.com",
+        "role_name": "doctor",
+        "is_active": true,
+        "doctor": {
+          "id": 1,
+          "specialty": "Cardiología",
+          "license_number": "CED-876543",
+          "phone": "7411234567"
+        }
+      }
+    ]
+    ```
+
+**POST /api/users**
+*   **Request (Médico):**
+    ```json
+    {
+      "name": "Dra. Laura Gómez",
+      "email": "laura@medicontrol.com",
+      "password": "password123",
+      "role_id": 2,
+      "is_active": true,
+      "specialty": "Pediatría",
+      "license_number": "CED-123456",
+      "phone": "7419876543"
+    }
+    ```
+*   **Response 201:** Objeto usuario creado con la vinculación en la tabla `doctors`.
+
+**PUT /api/users/{id}**
+*   **Request (Contraseña opcional y desactivación):**
+    ```json
+    {
+      "name": "Dra. Laura Gómez Silva",
+      "is_active": false
+    }
+    ```
+*   **Response 200:** Objeto usuario actualizado.
+
+**DELETE /api/users/{id}**
+*   **Reglas de Validación:**
+    *   No es permitido auto-eliminarse.
+    *   No es permitido eliminar doctores activos vinculados a citas programadas.
+*   **Response 200:**
+    ```json
+    {
+      "message": "User deleted successfully"
+    }
+    ```
+
+**GET /api/roles**
+*   **Response 200:**
+    ```json
+    [
+      {"id": 1, "name": "admin"},
+      {"id": 2, "name": "doctor"},
+      {"id": 3, "name": "receptionist"},
+      {"id": 4, "name": "patient"}
+    ]
+    ```
 
 ---
 
@@ -1954,41 +1892,33 @@ Response 200:
 ### 4.3.1 Medidas de Seguridad Implementadas
 
 **Autenticación y Autorización:**
-- JWT (JSON Web Tokens) con Laravel Sanctum
-- Tokens con expiración de 8 horas
-- Refresh tokens no implementados en v1.0 (sesión única)
-- Middleware de autenticación en todas las rutas protegidas
-- Control de acceso basado en roles (RBAC)
+- JWT (JSON Web Tokens) con Laravel Sanctum / Passport para un manejo de sesiones robusto y seguro.
+- Tokens con expiración configurada en producción.
+- Middleware de autenticación en todas las rutas protegidas para interceptar peticiones no firmadas.
+- Control de acceso basado en roles (RBAC) con lógica adaptativa en base al rol (Admin, Doctor, Receptionist, Patient).
 
 **Encriptación:**
-- Contraseñas hasheadas con bcrypt (factor 12)
-- Comunicación HTTPS obligatoria en producción
-- Certificado SSL/TLS con Let's Encrypt
-- Variables sensibles en archivo .env (excluido de Git)
+- Contraseñas hasheadas en el backend utilizando bcrypt de alta seguridad.
+- Comunicación HTTPS obligatoria en producción para encriptar la transmisión de datos sensibles.
+- Certificado SSL/TLS administrado de forma segura.
+- Variables sensibles en archivo `.env` totalmente excluido de control de versiones Git.
 
-**Validación de Datos:**
-- Validación en frontend (Angular Reactive Forms)
-- Validación en backend (Laravel Form Requests)
-- Protección contra SQL Injection (ORM Eloquent con prepared statements)
-- Protección contra XSS (sanitización automática de Laravel)
-- Protección contra CSRF (tokens en formularios)
+**Validación de Datos y Sanitización:**
+- Validación en frontend mediante Reactive Forms en Angular, previniendo solicitudes malformadas antes de salir del navegador.
+- Validación estricta en el backend utilizando Laravel Form Requests, aplicando casting y sanitización para prevenir inyección SQL e inyección de scripts (XSS).
+- ORM Eloquent mediante prepared statements nativas para prevenir inyección SQL.
 
-**Rate Limiting:**
-- 60 peticiones por minuto por IP
-- 5 intentos de login antes de bloqueo temporal (15 min)
-- Throttling en endpoints de búsqueda intensiva
+**Control de Tasa (Rate Limiting) y Bloqueo:**
+- Límite de intentos de login para proteger contra ataques de fuerza bruta.
+- Bloqueo automatizado de cuentas de usuario (`is_active = false`) en el flujo de inicio de sesión de Laravel cuando es desactivado por el administrador.
 
-**Auditoría:**
-- Log de acciones críticas (modificación de expedientes, cancelación de citas)
-- Registro de intentos de login fallidos
-- Laravel Log con niveles: ERROR, WARNING, INFO, DEBUG
-- Logs rotan automáticamente (7 días de retención)
+**Auditoría y Logs:**
+- Log detallado en backend utilizando el componente estándar de Logs de Laravel, registrando errores críticos (por ejemplo, errores de entrega en Twilio SMS), transacciones de inventario y acciones de usuarios.
+- Almacenamiento local de logs con rotación periódica para control de espacio físico.
 
 **Respaldos:**
-- Respaldo automático de BD diario (2:00 AM)
-- Retención de 30 días
-- Almacenamiento encriptado
-- Pruebas de restauración mensuales
+- Respaldo de base de datos automatizado diario mediante cron jobs y tareas en segundo plano.
+- Retención mensual de archivos comprimidos y encriptados en almacenamiento persistente.
 
 ---
 
@@ -2283,8 +2213,8 @@ R: Si pierde la conexión, al recuperarla el sistema sincronizará automáticame
 
 Si experimenta problemas técnicos o tiene dudas:
 
-📧 **Email:** soporte@medicontrol.com  
-📞 **Teléfono:** 442-123-4567 ext. 100  
+📧 **Email:** sunellopez@gmail.com  
+📞 **Teléfono:** +52 741-115-5283  
 🕐 **Horario:** Lunes a Viernes, 9:00 AM - 6:00 PM
 
 ---
