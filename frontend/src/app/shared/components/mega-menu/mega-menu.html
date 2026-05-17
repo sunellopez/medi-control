@@ -10,7 +10,7 @@
 
   <!-- Nav Items -->
   <ul class="flex items-center gap-1">
-    @for (item of navItems; track item.route) {
+    @for (item of filteredNavItems; track item.route) {
       <li>
         <a
           [routerLink]="item.route"

@@ -1,0 +1,66 @@
+<div class="p-4 md:p-6 max-w-7xl mx-auto z-10 relative">
+  <!-- Header -->
+  <div class="mb-6 animate-fade-in">
+    <h2 class="text-3xl font-extrabold text-mc-text-primary tracking-tight">Panel de Reportes</h2>
+    <p class="text-mc-text-secondary mt-1 font-medium">Resumen general del estado de la clínica</p>
+  </div>
+
+  <!-- Stats Grid -->
+  <div [class]="'grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in ' + (isAdmin() ? 'lg:grid-cols-4' : 'lg:grid-cols-3')">
+    
+    <!-- Card 1: Total Pacientes -->
+    <div class="liquid-glass-panel !p-6 flex items-center gap-5 hover:scale-[1.02] hover:bg-white/20 transition-all duration-300 group">
+      <div class="w-14 h-14 rounded-2xl liquid-glass-btn border-0 shadow-none flex-shrink-0 flex items-center justify-center font-bold text-xl bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
+        <i class="pi pi-users text-2xl"></i>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Total Pacientes</p>
+        <p class="text-3xl font-black text-mc-text-primary mt-1 tracking-tight">
+          {{ stats().totalPatients !== undefined ? stats().totalPatients : '--' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Card 2: Citas Programadas -->
+    <div class="liquid-glass-panel !p-6 flex items-center gap-5 hover:scale-[1.02] hover:bg-white/20 transition-all duration-300 group">
+      <div class="w-14 h-14 rounded-2xl liquid-glass-btn border-0 shadow-none flex-shrink-0 flex items-center justify-center font-bold text-xl bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300">
+        <i class="pi pi-calendar-plus text-2xl"></i>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Citas Programadas</p>
+        <p class="text-3xl font-black text-mc-text-primary mt-1 tracking-tight">
+          {{ stats().totalAppointments !== undefined ? stats().totalAppointments : '--' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Card 3: Médicos Activos (Only for Admins) -->
+    @if (isAdmin()) {
+      <div class="liquid-glass-panel !p-6 flex items-center gap-5 hover:scale-[1.02] hover:bg-white/20 transition-all duration-300 group">
+        <div class="w-14 h-14 rounded-2xl liquid-glass-btn border-0 shadow-none flex-shrink-0 flex items-center justify-center font-bold text-xl bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300">
+          <i class="pi pi-id-card text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Médicos Activos</p>
+          <p class="text-3xl font-black text-mc-text-primary mt-1 tracking-tight">
+            {{ stats().activeDoctors !== undefined ? stats().activeDoctors : '--' }}
+          </p>
+        </div>
+      </div>
+    }
+
+    <!-- Card 4: Stock Bajo -->
+    <div class="liquid-glass-panel !p-6 flex items-center gap-5 hover:scale-[1.02] hover:bg-white/20 transition-all duration-300 group">
+      <div class="w-14 h-14 rounded-2xl liquid-glass-btn border-0 shadow-none flex-shrink-0 flex items-center justify-center font-bold text-xl bg-rose-500/10 text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all duration-300">
+        <i class="pi pi-exclamation-triangle text-2xl"></i>
+      </div>
+      <div>
+        <p class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Stock Bajo</p>
+        <p class="text-3xl font-black text-mc-text-primary mt-1 tracking-tight">
+          {{ stats().lowStockMedications !== undefined ? stats().lowStockMedications : '--' }}
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>

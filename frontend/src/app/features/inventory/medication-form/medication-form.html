@@ -1,0 +1,60 @@
+<div class="p-6">
+  <div class="mb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Nuevo Medicamento</h1>
+      <p class="text-gray-600 dark:text-gray-400">Dar de alta medicamento en el catálogo</p>
+    </div>
+    <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-text" [routerLink]="['/dashboard/inventory']"></p-button>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+      
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Nombre del Medicamento</label>
+        <input pInputText formControlName="name" class="w-full">
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Descripción / Componente</label>
+        <textarea pTextarea formControlName="description" rows="2" class="w-full"></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Lote</label>
+          <input pInputText formControlName="batch" class="w-full">
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Fecha de Caducidad</label>
+          <p-datepicker formControlName="expiration_date" dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full"></p-datepicker>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Stock Inicial</label>
+          <p-inputNumber formControlName="current_stock" [showButtons]="true" [min]="0" styleClass="w-full"></p-inputNumber>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Stock Mínimo</label>
+          <p-inputNumber formControlName="minimum_stock" [showButtons]="true" [min]="0" styleClass="w-full"></p-inputNumber>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Precio Unitario</label>
+          <p-inputNumber formControlName="unit_price" mode="currency" currency="MXN" [min]="0" styleClass="w-full"></p-inputNumber>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <p-button label="Guardar Medicamento" type="submit" [disabled]="form.invalid"></p-button>
+      </div>
+    </form>
+  </div>
+</div>

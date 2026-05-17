@@ -81,20 +81,25 @@
             {{ patient.phone || '—' }}
           </td>
           <td class="p-4 text-mc-text-secondary font-medium hidden xl:table-cell">
-            <span *ngIf="patient.emergency_contact">
+            @if(patient.emergency_contact) {
+            <span>
               {{ patient.emergency_contact }} · <span class="text-xs">{{ patient.emergency_phone }}</span>
             </span>
-            <span *ngIf="!patient.emergency_contact" class="opacity-40">N/A</span>
+            }
+            @if (!patient.emergency_contact) {
+            <span class="opacity-40">N/A</span>
+            }
           </td>
           <td class="p-4 text-right">
-            <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button pButton icon="pi pi-pencil"
-                class="!w-8 !h-8 !p-0 !rounded-lg !bg-white/20 !border-mc-glass-border !text-mc-text-primary hover:!bg-mc-primary hover:!text-white hover:!border-mc-primary transition-all"
-                title="Editar" (click)="openEdit(patient)">
+            <div class="flex items-center justify-end gap-1">
+              <button pButton icon="pi pi-eye" class="p-button-text p-button-sm p-button-info" pTooltip="Ver Detalles"
+                (click)="openView(patient)">
               </button>
-              <button pButton icon="pi pi-trash"
-                class="!w-8 !h-8 !p-0 !rounded-lg !bg-white/20 !border-mc-glass-border !text-mc-text-primary hover:!bg-red-500 hover:!text-white hover:!border-red-500 transition-all"
-                title="Eliminar" (click)="confirmDelete(patient)">
+              <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm p-button-warning"
+                pTooltip="Editar paciente" (click)="openEdit(patient)">
+              </button>
+              <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger"
+                pTooltip="Eliminar paciente" (click)="confirmDelete(patient)">
               </button>
             </div>
           </td>
@@ -117,7 +122,8 @@
       </ng-template>
 
       <ng-template #loadingbody>
-        <tr *ngFor="let i of [1,2,3,4,5]">
+        @for (item of [1,2,3,4,5]; track $index) {
+        <tr>
           <td colspan="6" class="p-4">
             <div class="animate-pulse flex gap-3 items-center">
               <div class="w-9 h-9 rounded-xl bg-white/20"></div>
@@ -128,6 +134,7 @@
             </div>
           </td>
         </tr>
+        }
       </ng-template>
 
     </p-table>
@@ -144,23 +151,27 @@
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Nombre *</label>
         <input pInputText formControlName="first_name" placeholder="Nombre(s)" class="liquid-glass-input" />
-        <small *ngIf="form.get('first_name')?.touched && form.get('first_name')?.invalid"
-          class="text-red-500 text-xs">Requerido</small>
+        @if(form.get('first_name')?.touched && form.get('first_name')?.invalid) {
+        <small class="text-red-500 text-xs">Requerido</small>
+        }
       </div>
       <!-- Last name -->
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Apellidos *</label>
         <input pInputText formControlName="last_name" placeholder="Apellido Paterno Materno"
           class="liquid-glass-input" />
-        <small *ngIf="form.get('last_name')?.touched && form.get('last_name')?.invalid"
-          class="text-red-500 text-xs">Requerido</small>
+        @if(form.get('last_name')?.touched && form.get('last_name')?.invalid) {
+        <small class="text-red-500 text-xs">Requerido</small>
+        }
       </div>
       <!-- DOB -->
       <div class="flex flex-col gap-1.5">
         <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Fecha de Nacimiento *</label>
-        <input pInputText type="date" formControlName="date_of_birth" class="liquid-glass-input" />
-        <small *ngIf="form.get('date_of_birth')?.touched && form.get('date_of_birth')?.invalid"
-          class="text-red-500 text-xs">Requerido</small>
+        <p-datepicker formControlName="date_of_birth" dateFormat="yy-mm-dd" appendTo="body"
+          [showIcon]="true"></p-datepicker>
+        @if(form.get('date_of_birth')?.touched && form.get('date_of_birth')?.invalid) {
+        <small class="text-red-500 text-xs">Requerido</small>
+        }
       </div>
       <!-- Gender -->
       <div class="flex flex-col gap-1.5">
@@ -204,4 +215,46 @@
       </button>
     </div>
   </ng-template>
+</p-dialog>
+
+<!-- View Dialog -->
+<p-dialog [(visible)]="viewDialog" header="Detalles del Paciente" [modal]="true" [closable]="true" [draggable]="false"
+  styleClass="!rounded-3xl !overflow-hidden w-full" [style]="{ width: '450px', maxWidth: '95vw' }">
+  @if (selectedPatient()) {
+  <div class="flex flex-col gap-4 p-2">
+    <div>
+      <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Nombre Completo</span>
+      <p class="font-medium text-mc-text-primary">{{ selectedPatient()!.first_name }} {{ selectedPatient()!.last_name }}
+      </p>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Fecha de
+          Nacimiento</span>
+        <p class="font-medium text-mc-text-primary">{{ selectedPatient()!.date_of_birth | date:'longDate' }}</p>
+      </div>
+      <div>
+        <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Género</span>
+        <p class="font-medium text-mc-text-primary">{{ genderLabel(selectedPatient()!.gender) }}</p>
+      </div>
+    </div>
+    <div>
+      <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Contacto</span>
+      <p class="font-medium text-mc-text-primary">{{ selectedPatient()!.phone || 'No registrado' }}</p>
+      <p class="font-medium text-mc-text-primary text-sm opacity-80">
+        {{ selectedPatient()!.email || 'Sin correo electrónico' }}
+      </p>
+    </div>
+    <div>
+      <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Contacto de
+        Emergencia</span>
+      <p class="font-medium text-mc-text-primary">{{ selectedPatient()!.emergency_contact || 'No registrado' }}</p>
+      <p class="font-medium text-mc-text-primary text-sm opacity-80">{{ selectedPatient()!.emergency_phone || '' }}</p>
+    </div>
+    <div>
+      <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Dirección</span>
+      <p class="font-medium text-mc-text-primary">{{ selectedPatient()!.address || 'No registrada' }}</p>
+    </div>
+  </div>
+  }
 </p-dialog>

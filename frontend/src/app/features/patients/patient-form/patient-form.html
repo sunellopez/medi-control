@@ -1,0 +1,67 @@
+<div class="p-6">
+  <div class="mb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Nuevo Paciente</h1>
+      <p class="text-gray-600 dark:text-gray-400">Registrar datos personales</p>
+    </div>
+    <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-text" [routerLink]="['/dashboard/patients']"></p-button>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Nombre(s)</label>
+          <input pInputText formControlName="first_name" class="w-full">
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Apellidos</label>
+          <input pInputText formControlName="last_name" class="w-full">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Fecha de Nacimiento</label>
+          <p-datepicker formControlName="date_of_birth" dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full"></p-datepicker>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Género</label>
+          <p-select [options]="genders" formControlName="gender" styleClass="w-full"></p-select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Teléfono</label>
+          <input pInputText formControlName="phone_number" class="w-full">
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Correo Electrónico</label>
+          <input pInputText formControlName="email" type="email" class="w-full">
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Dirección</label>
+        <input pInputText formControlName="address" class="w-full">
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Contacto de Emergencia</label>
+        <input pInputText formControlName="emergency_contact" class="w-full">
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <p-button label="Guardar Paciente" type="submit" [disabled]="form.invalid"></p-button>
+      </div>
+    </form>
+  </div>
+</div>

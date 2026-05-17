@@ -1,0 +1,49 @@
+<div class="p-6">
+  <div class="mb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Registrar Movimiento</h1>
+      <p class="text-gray-600 dark:text-gray-400">Entradas, salidas o ajustes de inventario</p>
+    </div>
+    <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-text"
+      [routerLink]="['/dashboard/inventory']"></p-button>
+  </div>
+
+  @if (errorMessage()) {
+  <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+    {{ errorMessage() }}
+  </div>
+  }
+
+  <div
+    class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 max-w-2xl">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-4">
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Medicamento</label>
+        <p-select [options]="medications()" formControlName="medication_id" optionLabel="name" optionValue="id"
+          placeholder="Seleccione un medicamento" styleClass="w-full" [filter]="true" filterBy="name"></p-select>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Tipo de Movimiento</label>
+          <p-select [options]="movementTypes" formControlName="type" styleClass="w-full"></p-select>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Cantidad</label>
+          <p-inputNumber formControlName="quantity" [showButtons]="true" [min]="0" styleClass="w-full"></p-inputNumber>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Motivo o Justificación (Opcional)</label>
+        <input pInputText formControlName="reason" class="w-full" placeholder="Ej. Compra, Merma, Receta paciente X">
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <p-button label="Guardar Movimiento" type="submit" [disabled]="form.invalid"></p-button>
+      </div>
+    </form>
+  </div>
+</div>

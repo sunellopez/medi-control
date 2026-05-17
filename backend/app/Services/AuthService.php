@@ -19,6 +19,13 @@ class AuthService
         }
 
         $user = Auth::user();
+
+        if ($user->is_active == 0) {
+            throw ValidationException::withMessages([
+                'email' => ['Su usuario ha sido bloqueado por el administrador.'],
+            ]);
+        }
+
         $token = $user->createToken('MediControl')->accessToken;
 
         return [

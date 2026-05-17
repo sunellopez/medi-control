@@ -16,7 +16,13 @@ class PatientController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Patient::query()->with('user')->where('user_id', $request->user()->id);
+        $user = $request->user();
+        $query = Patient::query()->with('user');
+
+        // Only restrict if the user has the 'patient' role
+        if ($user->role_name === 'patient') {
+            $query->where('user_id', $user->id);
+        }
 
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
@@ -26,7 +32,7 @@ class PatientController extends Controller
             });
         }
 
-        $patients = $query->orderBy('last_name', 'asc')->paginate($request->query('per_page', 20));
+        $patients = $query->orderBy('id', 'desc')->paginate($request->query('per_page', 20));
 
         return response()->json($patients);
     }
@@ -48,6 +54,12 @@ class PatientController extends Controller
             'emergency_phone'   => 'nullable|string|max:30',
             'user_id'           => 'nullable|exists:users,id',
         ]);
+
+        if ($request->user() && $request->user()->role_name === 'patient') {
+            $data['user_id'] = $request->user()->id;
+        } else {
+            $data['user_id'] = $request->user()->id;
+        }
 
         $patient = Patient::create($data);
 
@@ -82,6 +94,16 @@ class PatientController extends Controller
             'emergency_phone'   => 'nullable|string|max:30',
             'user_id'           => 'nullable|exists:users,id',
         ]);
+
+        // Auto-assign/overwrite user_id if the logged-in user has the 'patient' role
+        if ($request->user() && $request->user()->role_name === 'patient') {
+            $data['user_id'] = $request->user()->id;
+        } else {
+            // For admin/receptionist, only update if passed in payload
+            if ($request->has('user_id')) {
+                $data['user_id'] = $request->input('user_id');
+            }
+        }
 
         $patient->update($data);
 

@@ -1,0 +1,275 @@
+<div class="p-4 md:p-6 max-w-7xl mx-auto z-10 relative">
+  <p-toast position="top-right" />
+  <p-confirmdialog />
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-fade-in">
+    <div>
+      <h2 class="text-3xl font-extrabold text-mc-text-primary tracking-tight">Expedientes Clínicos</h2>
+      <p class="text-mc-text-secondary mt-1 font-medium">
+        Historial de consultas, diagnósticos y tratamientos de pacientes
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button pButton icon="pi pi-plus" label="Nueva Consulta"
+        class="liquid-glass-btn !px-4 !py-2 !rounded-xl !font-bold !text-sm !border-0"
+        [routerLink]="['/dashboard/medical-records/new']">
+      </button>
+    </div>
+  </div>
+
+  <!-- PrimeNG Table -->
+  <div class="liquid-glass-panel overflow-hidden animate-fade-in animate-duration-300">
+    <p-table [value]="records()" [loading]="loading()" styleClass="!bg-transparent" [tableStyle]="{'width':'100%'}"
+      [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5, 10, 25, 50]" responsiveLayout="scroll">
+
+      <ng-template #header>
+        <tr class="border-b border-mc-glass-border bg-black/5">
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Paciente</th>
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Médico Atendiendo
+          </th>
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Fecha Consulta</th>
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Diagnóstico
+            Principal</th>
+          <th class="p-4 text-right text-xs font-bold text-mc-text-primary uppercase tracking-wider">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-record>
+        <tr class="border-b border-mc-glass-border/50 hover:bg-white/20 transition-all group">
+          <td class="p-4 font-bold text-mc-text-primary">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-9 h-9 rounded-xl liquid-glass-btn border-0 shadow-none flex-shrink-0 flex items-center justify-center font-bold text-sm">
+                {{ record.patient?.first_name.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <p class="font-bold text-mc-text-primary group-hover:text-mc-primary-dark transition-colors">
+                  {{ record.patient?.first_name }} {{ record.patient?.last_name }}
+                </p>
+                <p class="text-xs text-mc-text-secondary font-medium">Expediente #{{ record.id }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="p-4 text-mc-text-secondary font-medium">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-user-md text-mc-primary text-sm"></i>
+              <span>{{ record.doctor?.user?.name }}</span>
+            </div>
+          </td>
+          <td class="p-4 text-mc-text-secondary font-medium">
+            {{ record.created_at | date:'dd/MM/yyyy, hh:mm a' }}
+          </td>
+          <td class="p-4">
+            <span
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 shadow-sm">
+              {{ record.diagnosis }}
+            </span>
+          </td>
+          <td class="p-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button pButton icon="pi pi-eye" class="p-button-text p-button-sm p-button-info" pTooltip="Ver Expediente"
+                (click)="openViewDialog(record)"></button>
+              <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm p-button-warning"
+                pTooltip="Editar Diagnóstico" (click)="openEditDialog(record)"></button>
+              <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger"
+                pTooltip="Eliminar Registro" (click)="confirmDelete(record)"></button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #empty>
+        <tr>
+          <td colspan="5" class="py-16 text-center">
+            <div class="flex flex-col items-center gap-3">
+              <div
+                class="w-16 h-16 liquid-glass-btn !rounded-2xl border-0 shadow-none flex items-center justify-center">
+                <i class="pi pi-folder-open text-white text-2xl"></i>
+              </div>
+              <p class="font-bold text-mc-text-primary text-lg">No hay expedientes clínicos registrados</p>
+              <p class="text-sm text-mc-text-secondary font-medium">
+                Haz clic en 'Nueva Consulta' para registrar una ficha médica.
+              </p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #loadingbody>
+        @for (item of [1,2,3,4,5]; track $index) {
+        <tr>
+          <td colspan="5" class="p-4">
+            <div class="animate-pulse flex gap-3 items-center">
+              <div class="w-9 h-9 rounded-xl bg-white/20"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 bg-white/20 rounded w-1/3"></div>
+                <div class="h-2 bg-white/10 rounded w-1/5"></div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        }
+      </ng-template>
+
+    </p-table>
+  </div>
+</div>
+
+<!-- View Dialog -->
+<p-dialog [(visible)]="viewDialog" header="Ficha Médica de Consulta" [modal]="true" [closable]="true"
+  [draggable]="false" styleClass="!rounded-3xl !overflow-hidden w-full" [style]="{ width: '600px', maxWidth: '95vw' }">
+  @if (selectedRecord()) {
+  <div class="flex flex-col gap-4 p-2">
+    <!-- Patient and Doctor Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="bg-mc-primary/5 p-3.5 rounded-2xl border border-mc-glass-border">
+        <span class="text-[10px] font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Paciente</span>
+        <p class="font-bold text-mc-text-primary text-sm">
+          {{ selectedRecord()!.patient?.first_name }} {{ selectedRecord()!.patient?.last_name }}
+        </p>
+        <span class="text-xs text-mc-text-secondary mt-0.5 block font-medium">
+          F. Nac: {{ selectedRecord()!.patient?.date_of_birth | date:'dd/MM/yyyy' }}
+        </span>
+      </div>
+
+      <div class="bg-purple-500/5 p-3.5 rounded-2xl border border-mc-glass-border">
+        <span class="text-[10px] font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Médico
+          Atendiendo</span>
+        <p class="font-bold text-mc-text-primary text-sm">
+          {{ selectedRecord()!.doctor?.user?.name }}
+        </p>
+        <span class="text-xs text-mc-text-secondary mt-0.5 block font-medium">
+          Cédula: {{ selectedRecord()!.doctor?.license_number }}
+        </span>
+      </div>
+    </div>
+
+    <div class="bg-black/5 p-3 rounded-xl border border-mc-glass-border/30 flex justify-between items-center text-xs">
+      <span class="font-bold text-mc-text-secondary">Fecha y Hora de la Consulta:</span>
+      <span class="font-bold text-mc-text-primary">{{ selectedRecord()!.created_at | date:'dd/MM/yyyy, hh:mm a'
+        }}</span>
+    </div>
+
+    <!-- Clinical SOAP Fields -->
+    <div class="flex flex-col gap-4.5 border-t border-mc-glass-border/30 pt-4 mt-2">
+
+      <!-- Symptoms -->
+      <div>
+        <h4 class="text-xs font-bold text-mc-primary uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <i class="pi pi-comments text-xs"></i>
+          1. Sintomatología (Subjetivo)
+        </h4>
+        <div
+          class="bg-white/10 dark:bg-black/20 p-3 rounded-2xl border border-mc-glass-border/40 text-sm text-mc-text-primary font-medium whitespace-pre-wrap">
+          {{ selectedRecord()!.symptoms }}
+        </div>
+      </div>
+
+      <!-- Diagnosis -->
+      <div>
+        <h4 class="text-xs font-bold text-mc-primary uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <i class="pi pi-id-card text-xs"></i>
+          2. Diagnóstico Médico (Objetivo)
+        </h4>
+        <div class="bg-blue-500/5 p-3 rounded-2xl border border-blue-500/10 text-sm text-mc-text-primary font-bold">
+          {{ selectedRecord()!.diagnosis }}
+        </div>
+      </div>
+
+      <!-- Treatment Plan -->
+      <div>
+        <h4 class="text-xs font-bold text-mc-primary uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <i class="pi pi-prescription text-xs"></i>
+          3. Plan de Tratamiento y Receta (Plan)
+        </h4>
+        <div
+          class="bg-emerald-500/5 p-3 rounded-2xl border border-emerald-500/10 text-sm text-mc-text-primary font-medium whitespace-pre-wrap">
+          {{ selectedRecord()!.treatment || 'Ningún tratamiento o receta registrado.' }}
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div>
+        <h4 class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <i class="pi pi-paperclip text-xs"></i>
+          Notas Adicionales
+        </h4>
+        <div
+          class="bg-white/10 dark:bg-black/20 p-3 rounded-2xl border border-mc-glass-border/40 text-sm text-mc-text-secondary font-medium whitespace-pre-wrap">
+          {{ selectedRecord()!.notes || 'Sin observaciones adicionales.' }}
+        </div>
+      </div>
+
+    </div>
+  </div>
+  }
+</p-dialog>
+
+<!-- Edit Dialog -->
+<p-dialog [(visible)]="editDialog" header="Editar Expediente Clínico" [modal]="true" [closable]="true"
+  [draggable]="false" styleClass="!rounded-3xl !overflow-hidden w-full" [style]="{ width: '580px', maxWidth: '95vw' }">
+
+  @if (selectedRecord()) {
+  <form [formGroup]="editForm" class="p-2 flex flex-col gap-4">
+
+    <!-- Static context info -->
+    <div class="grid grid-cols-2 gap-3 text-xs bg-black/5 p-3 rounded-xl border border-mc-glass-border/30 mb-2">
+      <div>
+        <span class="font-bold text-mc-text-secondary block">Paciente:</span>
+        <span class="font-bold text-mc-text-primary">{{ selectedRecord()!.patient?.first_name }} {{
+          selectedRecord()!.patient?.last_name }}</span>
+      </div>
+      <div>
+        <span class="font-bold text-mc-text-secondary block">Atendido por:</span>
+        <span class="font-bold text-mc-text-primary">{{ selectedRecord()!.doctor?.user?.name }}</span>
+      </div>
+    </div>
+
+    <!-- Symptoms -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Síntomas (Subjetivo) *</label>
+      <textarea pTextarea formControlName="symptoms" rows="3" class="liquid-glass-input w-full !py-2.5"></textarea>
+      @if(editForm.get('symptoms')?.touched && editForm.get('symptoms')?.invalid) {
+      <small class="text-red-500 text-xs">Requerido</small>
+      }
+    </div>
+
+    <!-- Diagnosis -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Diagnóstico *</label>
+      <input pInputText formControlName="diagnosis" placeholder="Diagnóstico principal"
+        class="liquid-glass-input w-full" />
+      @if(editForm.get('diagnosis')?.touched && editForm.get('diagnosis')?.invalid) {
+      <small class="text-red-500 text-xs">Requerido</small>
+      }
+    </div>
+
+    <!-- Treatment plan -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Plan de Tratamiento /
+        Receta</label>
+      <textarea pTextarea formControlName="treatment" rows="4" class="liquid-glass-input w-full !py-2.5"></textarea>
+    </div>
+
+    <!-- Notes -->
+    <div class="flex flex-col gap-1.5">
+      <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Notas Adicionales</label>
+      <textarea pTextarea formControlName="notes" rows="2" class="liquid-glass-input w-full !py-2.5"></textarea>
+    </div>
+
+  </form>
+  }
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-3 p-2">
+      <button pButton label="Cancelar" icon="pi pi-times"
+        class="!bg-white/20 !text-mc-text-primary !border-mc-glass-border hover:!bg-white/40 !rounded-xl !font-bold"
+        (click)="editDialog.set(false)">
+      </button>
+      <button pButton label="Actualizar Ficha" icon="pi pi-check" [disabled]="editForm.invalid || isSubmitting()"
+        class="liquid-glass-btn !rounded-xl !font-bold !border-0 !px-6" (click)="saveEdit()">
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

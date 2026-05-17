@@ -1,0 +1,337 @@
+<div class="p-4 md:p-6 max-w-7xl mx-auto z-10 relative">
+  <p-toast position="top-right" />
+  <p-confirmdialog />
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 animate-fade-in">
+    <div>
+      <h2 class="text-3xl font-extrabold text-mc-text-primary tracking-tight">Gestión de Usuarios</h2>
+      <p class="text-mc-text-secondary mt-1 font-medium">
+        {{ users().length }} usuarios registrados en el sistema
+      </p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button pButton icon="pi pi-user-plus" label="Nuevo Usuario"
+        class="liquid-glass-btn !px-4 !py-2 !rounded-xl !font-bold !text-sm !border-0" (click)="openRegisterDialog()">
+      </button>
+    </div>
+  </div>
+
+  <!-- PrimeNG Table -->
+  <div class="liquid-glass-panel overflow-hidden animate-fade-in">
+    <p-table [value]="users()" [loading]="loading()" styleClass="!bg-transparent" [tableStyle]="{'width':'100%'}">
+
+      <ng-template #header>
+        <tr class="border-b border-mc-glass-border bg-black/5">
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Usuario</th>
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Email</th>
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Rol</th>
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Información
+            Profesional</th>
+          <th class="p-4 text-left text-xs font-bold text-mc-text-primary uppercase tracking-wider">Estado</th>
+          <th class="p-4 text-right text-xs font-bold text-mc-text-primary uppercase tracking-wider">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-user>
+        <tr class="border-b border-mc-glass-border/50 hover:bg-white/20 transition-all group">
+          <td class="p-4">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-9 h-9 rounded-xl liquid-glass-btn border-0 shadow-none flex-shrink-0 flex items-center justify-center font-bold text-sm">
+                {{ user.name.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <p class="font-bold text-mc-text-primary group-hover:text-mc-primary-dark transition-colors">
+                  {{ user.name }}
+                </p>
+              </div>
+            </div>
+          </td>
+          <td class="p-4 text-mc-text-secondary font-medium">
+            {{ user.email }}
+          </td>
+          <td class="p-4">
+            <span class="px-3 py-1 rounded-full text-xs font-bold shadow-sm" [ngClass]="{
+                'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300': user.role_name === 'admin',
+                'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300': user.role_name === 'doctor',
+                'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300': user.role_name === 'receptionist',
+                'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300': user.role_name === 'patient'
+              }">
+              {{ user.role_name | uppercase }}
+            </span>
+          </td>
+          <td class="p-4 text-mc-text-secondary font-medium">
+            @if (user.role_name === 'doctor' && user.doctor) {
+            <div class="flex flex-col gap-0.5 text-xs">
+              <span class="font-bold text-mc-text-primary">Especialidad: {{ user.doctor.specialty }}</span>
+              <span>Cédula: {{ user.doctor.license_number }}</span>
+              <span>Tel: {{ user.doctor.phone }}</span>
+            </div>
+            } @else {
+            <span class="text-xs italic text-mc-text-secondary/70">Sin detalles de perfil</span>
+            }
+          </td>
+          <td class="p-4">
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold"
+              [ngClass]="user.is_active ? 'text-emerald-500' : 'text-rose-500'">
+              <span class="w-2 h-2 rounded-full"
+                [ngClass]="user.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
+              {{ user.is_active ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="p-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button pButton icon="pi pi-eye" class="p-button-text p-button-sm p-button-info" pTooltip="Ver Detalles"
+                (click)="openViewDialog(user)">
+              </button>
+              <button pButton icon="pi pi-pencil" class="p-button-text p-button-sm p-button-warning"
+                pTooltip="Editar Usuario" (click)="openEditDialog(user)">
+              </button>
+              <button pButton icon="pi pi-trash" class="p-button-text p-button-sm p-button-danger"
+                pTooltip="Eliminar Usuario" (click)="confirmDelete(user)">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #empty>
+        <tr>
+          <td colspan="6" class="py-16 text-center">
+            <div class="flex flex-col items-center gap-3">
+              <div
+                class="w-16 h-16 liquid-glass-btn !rounded-2xl border-0 shadow-none flex items-center justify-center">
+                <i class="pi pi-users text-white text-2xl"></i>
+              </div>
+              <p class="font-bold text-mc-text-primary text-lg">No se encontraron usuarios</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #loadingbody>
+        @for (item of [1,2,3,4,5]; track $index) {
+        <tr>
+          <td colspan="6" class="p-4">
+            <div class="animate-pulse flex gap-3 items-center">
+              <div class="w-9 h-9 rounded-xl bg-white/20"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 bg-white/20 rounded w-1/3"></div>
+                <div class="h-2 bg-white/10 rounded w-1/5"></div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        }
+      </ng-template>
+
+    </p-table>
+  </div>
+</div>
+
+<!-- Create / Edit Dialog (PrimeNG p-dialog matching patient-list exactly) -->
+<p-dialog [(visible)]="showDialog" [header]="dialogTitle()" [modal]="true" [closable]="true" [draggable]="false"
+  styleClass="!rounded-3xl !overflow-hidden w-full" [style]="{ width: '580px', maxWidth: '95vw' }">
+
+  <form [formGroup]="form" class="p-2 flex flex-col gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Name -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Nombre Completo *</label>
+        <input pInputText formControlName="name" placeholder="Ej. Dr. Gregory House" class="liquid-glass-input" />
+        @if(form.get('name')?.touched && form.get('name')?.invalid) {
+        <small class="text-red-500 text-xs">Requerido (Mín. 3 letras)</small>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Correo Electrónico *</label>
+        <input pInputText type="email" formControlName="email" placeholder="house@medicontrol.com"
+          class="liquid-glass-input" />
+        @if(form.get('email')?.touched && form.get('email')?.invalid) {
+        <small class="text-red-500 text-xs">Correo válido requerido</small>
+        }
+      </div>
+
+      <!-- Password -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">
+          Contraseña {{ editingUserId() ? '(Opcional)' : '*' }}
+        </label>
+        <input pInputText type="password" formControlName="password" placeholder="Mín. 8 caracteres"
+          class="liquid-glass-input" />
+        @if(form.get('password')?.touched && form.get('password')?.invalid) {
+        <small class="text-red-500 text-xs">Requerido (Mín. 8 caracteres)</small>
+        }
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">
+          Confirmar Contraseña {{ editingUserId() ? '(Opcional)' : '*' }}
+        </label>
+        <input pInputText type="password" formControlName="password_confirmation" placeholder="Repite la contraseña"
+          class="liquid-glass-input" />
+        @if(form.get('password_confirmation')?.touched && form.hasError('mismatch')) {
+        <small class="text-red-500 text-xs">Las contraseñas no coinciden</small>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1" [ngClass]="editingUserId() ? 'sm:grid-cols-2 gap-4' : ''">
+      <!-- Role select -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Rol de Usuario *</label>
+        <p-select formControlName="role_id" [options]="roleOptions()" optionLabel="label" optionValue="value"
+          placeholder="Selecciona un rol" styleClass="w-full" appendTo="body" />
+        @if(form.get('role_id')?.touched && form.get('role_id')?.invalid) {
+        <small class="text-red-500 text-xs">Requerido</small>
+        }
+      </div>
+
+      <!-- Active select (only during edit) -->
+      @if (editingUserId()) {
+      <div class="flex flex-col gap-1.5 animate-fade-in">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Estado de la Cuenta *</label>
+        <p-select formControlName="is_active" [options]="activeOptions" optionLabel="label" optionValue="value"
+          styleClass="w-full" appendTo="body" />
+      </div>
+      }
+    </div>
+
+    <!-- Conditional Doctor Fields -->
+    @if (isDoctorSelected()) {
+    <div class="border-t border-mc-glass-border/30 pt-4 mt-2 animate-fade-in flex flex-col gap-4">
+      <h3 class="text-sm font-bold text-mc-primary flex items-center gap-2">
+        <i class="pi pi-id-card"></i>
+        Información Profesional del Médico
+      </h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Specialty -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Especialidad *</label>
+          <input pInputText formControlName="specialty" placeholder="Ej. Diagnóstico Clínico"
+            class="liquid-glass-input" />
+          @if(form.get('specialty')?.touched && form.get('specialty')?.invalid) {
+          <small class="text-red-500 text-xs">Requerido para médicos</small>
+          }
+        </div>
+
+        <!-- License number -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Cédula Profesional *</label>
+          <input pInputText formControlName="license_number" placeholder="Ej. CED-887766" class="liquid-glass-input" />
+          @if(form.get('license_number')?.touched && form.get('license_number')?.invalid) {
+          <small class="text-red-500 text-xs">Requerido para médicos</small>
+          }
+        </div>
+      </div>
+
+      <!-- Doctor Phone -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider">Teléfono de Médico *</label>
+        <input pInputText formControlName="phone" placeholder="Ej. 555-123-4567" class="liquid-glass-input" />
+        @if(form.get('phone')?.touched && form.get('phone')?.invalid) {
+        <small class="text-red-500 text-xs">Requerido para médicos</small>
+        }
+      </div>
+    </div>
+    }
+  </form>
+
+  <ng-template #footer>
+    <div class="flex justify-end gap-3 p-2">
+      <button pButton label="Cancelar" icon="pi pi-times"
+        class="!bg-white/20 !text-mc-text-primary !border-mc-glass-border hover:!bg-white/40 !rounded-xl !font-bold"
+        (click)="closeRegisterDialog()">
+      </button>
+      <button pButton [label]="editingUserId() ? 'Actualizar' : 'Registrar'" icon="pi pi-check"
+        [disabled]="form.invalid || isSubmitting()" class="liquid-glass-btn !rounded-xl !font-bold !border-0 !px-6"
+        (click)="onSubmit()">
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- View Dialog -->
+<p-dialog [(visible)]="viewDialog" header="Detalles del Usuario" [modal]="true" [closable]="true" [draggable]="false"
+  styleClass="!rounded-3xl !overflow-hidden w-full" [style]="{ width: '460px', maxWidth: '95vw' }">
+  @if (selectedUser()) {
+  <div class="flex flex-col gap-4 p-2">
+    <div>
+      <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Nombre de
+        Usuario</span>
+      <p class="font-bold text-mc-text-primary text-base">{{ selectedUser()!.name }}</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Correo
+          Electrónico</span>
+        <p class="font-medium text-mc-text-primary text-sm">{{ selectedUser()!.email }}</p>
+      </div>
+      <div>
+        <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Rol de Acceso</span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm mt-1" [ngClass]="{
+              'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300': selectedUser()!.role_name === 'admin',
+              'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300': selectedUser()!.role_name === 'doctor',
+              'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300': selectedUser()!.role_name === 'receptionist',
+              'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300': selectedUser()!.role_name === 'patient'
+            }">
+          {{ selectedUser()!.role_name | uppercase }}
+        </span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Estado del
+          Registro</span>
+        <span class="inline-flex items-center gap-1.5 text-xs font-bold mt-1"
+          [ngClass]="selectedUser()!.is_active ? 'text-emerald-500' : 'text-rose-500'">
+          <span class="w-2 h-2 rounded-full"
+            [ngClass]="selectedUser()!.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'"></span>
+          {{ selectedUser()!.is_active ? 'Activo' : 'Suspendido / Inactivo' }}
+        </span>
+      </div>
+      <div>
+        <span class="text-xs font-bold text-mc-text-secondary uppercase tracking-wider block mb-1">Miembro Desde</span>
+        <p class="font-medium text-mc-text-primary text-xs mt-1">
+          {{ selectedUser()!.created_at | date:'dd/MM/yyyy, hh:mm a' }}
+        </p>
+      </div>
+    </div>
+
+    @if (selectedUser()!.role_name === 'doctor' && selectedUser()!.doctor) {
+    <div class="border-t border-mc-glass-border/30 pt-4 mt-2">
+      <h4 class="text-sm font-extrabold text-mc-primary uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        <i class="pi pi-id-card"></i>
+        Información del Especialista
+      </h4>
+      <div class="flex flex-col gap-2.5 bg-mc-primary/5 p-3 rounded-2xl border border-mc-glass-border">
+        <div>
+          <span class="text-[10px] font-bold text-mc-text-secondary uppercase tracking-wider block">Especialidad
+            Médica</span>
+          <p class="font-bold text-mc-text-primary text-sm">{{ selectedUser()!.doctor.specialty }}</p>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <span class="text-[10px] font-bold text-mc-text-secondary uppercase tracking-wider block">Cédula
+              Profesional</span>
+            <p class="font-semibold text-mc-text-primary text-sm">{{ selectedUser()!.doctor.license_number }}</p>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold text-mc-text-secondary uppercase tracking-wider block">Teléfono
+              Profesional</span>
+            <p class="font-semibold text-mc-text-primary text-sm">{{ selectedUser()!.doctor.phone }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</p-dialog>

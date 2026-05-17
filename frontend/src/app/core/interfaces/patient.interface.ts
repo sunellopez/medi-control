@@ -8,5 +8,6 @@ export interface Patient {
   address?: string;
   emergency_contact?: string;
   emergency_phone?: string;
+  email?: string;
   user_id?: number;
 }

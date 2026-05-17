@@ -8,11 +8,13 @@ import { DialogModule } from 'primeng/dialog';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { PatientService } from '@services';
 import { Patient } from '@interfaces';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-patient-list',
@@ -20,7 +22,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,
     TableModule, ButtonModule, InputTextModule,
-    DialogModule, SelectModule, ToastModule, ConfirmDialogModule,
+    DialogModule, SelectModule, ToastModule, ConfirmDialogModule, DatePickerModule,
+    TooltipModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './patient-list.html'
@@ -32,34 +35,36 @@ export class PatientListComponent implements OnInit {
   private confirmationService = inject(ConfirmationService);
 
   // Table state
-  patients   = signal<Patient[]>([]);
+  patients = signal<Patient[]>([]);
   totalRecords = signal(0);
-  loading    = signal(true);
-  page       = 1;
-  perPage    = 10;
+  loading = signal(true);
+  page = 1;
+  perPage = 5;
   searchTerm = '';
   private search$ = new Subject<string>();
 
   // Dialog state
-  showDialog     = signal(false);
-  dialogTitle    = '';
+  showDialog = signal(false);
+  viewDialog = signal(false);
+  selectedPatient = signal<Patient | null>(null);
+  dialogTitle = '';
   editingId: number | null = null;
 
   genderOptions = [
     { label: 'Masculino', value: 'male' },
-    { label: 'Femenino',  value: 'female' },
-    { label: 'Otro',      value: 'other' },
+    { label: 'Femenino', value: 'female' },
+    { label: 'Otro', value: 'other' },
   ];
 
   form = this.fb.group({
-    first_name:        ['', Validators.required],
-    last_name:         ['', Validators.required],
-    date_of_birth:     ['', Validators.required],
-    gender:            ['male', Validators.required],
-    phone:             [''],
-    address:           [''],
+    first_name: ['', Validators.required],
+    last_name: ['', Validators.required],
+    date_of_birth: ['', Validators.required],
+    gender: ['male', Validators.required],
+    phone: [''],
+    address: [''],
     emergency_contact: [''],
-    emergency_phone:   [''],
+    emergency_phone: [''],
   });
 
   constructor() {
@@ -92,7 +97,7 @@ export class PatientListComponent implements OnInit {
   }
 
   onPage(event: any) {
-    this.page    = Math.floor(event.first / event.rows) + 1;
+    this.page = Math.floor(event.first / event.rows) + 1;
     this.perPage = event.rows;
     this.loadPatients();
   }
@@ -100,25 +105,45 @@ export class PatientListComponent implements OnInit {
   onSearch(term: string) { this.search$.next(term); }
 
   openCreate() {
-    this.editingId  = null;
+    this.editingId = null;
     this.dialogTitle = 'Nuevo Paciente';
     this.form.reset({ gender: 'male' });
     this.showDialog.set(true);
   }
 
+  openView(patient: Patient) {
+    this.selectedPatient.set(patient);
+    this.viewDialog.set(true);
+  }
+
   openEdit(patient: Patient) {
-    this.editingId   = patient.id!;
+    this.editingId = patient.id!;
     this.dialogTitle = 'Editar Paciente';
+
+    let parsedDate = null;
+    if (patient.date_of_birth) {
+      // Fix date format string for Date object
+      const dateStr = patient.date_of_birth.includes('T')
+        ? patient.date_of_birth
+        : patient.date_of_birth + 'T00:00:00';
+      parsedDate = new Date(dateStr);
+    }
+
     this.form.patchValue({
       ...patient,
-      date_of_birth: patient.date_of_birth?.substring(0, 10) ?? ''
+      date_of_birth: parsedDate as any
     });
     this.showDialog.set(true);
   }
 
   save() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    const data = this.form.value as any;
+    const data = { ...this.form.value } as any;
+
+    if (data.date_of_birth instanceof Date) {
+      data.date_of_birth = data.date_of_birth.toISOString().split('T')[0];
+    }
+
     const action = this.editingId
       ? this.patientService.update(this.editingId, data)
       : this.patientService.create(data);

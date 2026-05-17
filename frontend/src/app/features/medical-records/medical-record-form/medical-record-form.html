@@ -1,0 +1,56 @@
+<div class="p-6">
+  <div class="mb-6 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Nueva Consulta Clínica</h1>
+      <p class="text-gray-600 dark:text-gray-400">Registrar SOAP y diagnóstico</p>
+    </div>
+    <p-button label="Volver" icon="pi pi-arrow-left" styleClass="p-button-text" [routerLink]="['/dashboard/medical-records']"></p-button>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Paciente</label>
+          <p-select [options]="patients()" formControlName="patient_id" optionLabel="first_name" optionValue="id" placeholder="Seleccione paciente" styleClass="w-full" [filter]="true" filterBy="first_name"></p-select>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="font-medium text-gray-700 dark:text-gray-300">Médico Atendiendo</label>
+          <p-select [options]="doctors()" formControlName="doctor_id" optionLabel="user.name" optionValue="id" placeholder="Seleccione médico" styleClass="w-full"></p-select>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Síntomas (Subjetivo)</label>
+        <textarea pTextarea formControlName="symptoms" rows="3" class="w-full"></textarea>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Diagnóstico</label>
+        <input pInputText formControlName="diagnosis" class="w-full" placeholder="Diagnóstico principal">
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Plan de Tratamiento / Receta</label>
+        <textarea pTextarea formControlName="treatment" rows="4" class="w-full"></textarea>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium text-gray-700 dark:text-gray-300">Notas Adicionales</label>
+        <textarea pTextarea formControlName="notes" rows="2" class="w-full"></textarea>
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <p-button label="Guardar Expediente" type="submit" [disabled]="form.invalid"></p-button>
+      </div>
+    </form>
+  </div>
+</div>

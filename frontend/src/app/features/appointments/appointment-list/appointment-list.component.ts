@@ -1,54 +1,181 @@
-import { Component, computed, signal } from '@angular/core';
-
-interface Appointment {
-  id: number;
-  patient: string;
-  type: string;
-  time: string;
-  period: string;
-  status: 'Confirmada' | 'Pendiente' | 'Cancelada';
-}
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { AppointmentsService, Appointment } from '../appointments.service';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { DialogModule } from 'primeng/dialog';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
+import { TextareaModule } from 'primeng/textarea';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { RouterLink } from '@angular/router';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-appointment-list',
   standalone: true,
-  imports: [],
-  templateUrl: './appointment-list.html'
+  imports: [
+    CommonModule, TableModule, ButtonModule, RouterLink, TagModule, TooltipModule, 
+    ConfirmDialogModule, ToastModule, DialogModule, ReactiveFormsModule, 
+    InputTextModule, SelectModule, DatePickerModule, TextareaModule
+  ],
+  providers: [ConfirmationService, MessageService],
+  templateUrl: './appointment-list.component.html',
 })
-export class AppointmentListComponent {
-  activeFilter = 'Todas';
+export class AppointmentListComponent implements OnInit {
+  private appointmentsService = inject(AppointmentsService);
+  private confirmationService = inject(ConfirmationService);
+  private messageService = inject(MessageService);
+  private fb = inject(FormBuilder);
+  private http = inject(HttpClient);
+  
+  appointments = signal<Appointment[]>([]);
+  loading = signal(true);
 
-  filters = ['Todas', 'Confirmada', 'Pendiente', 'Cancelada'];
+  // Dialog states
+  viewDialog = signal(false);
+  editDialog = signal(false);
+  selectedAppointment = signal<Appointment | null>(null);
 
-  stats = [
-    { label: 'Total Hoy', value: 12, icon: 'pi-calendar' },
-    { label: 'Confirmadas', value: 8, icon: 'pi-check-circle' },
-    { label: 'Pendientes', value: 3, icon: 'pi-clock' },
-    { label: 'Canceladas', value: 1, icon: 'pi-times-circle' },
-  ];
+  // Edit form data
+  patients = signal<any[]>([]);
+  doctors = signal<any[]>([]);
 
-  private appointments = signal<Appointment[]>([
-    { id: 1, patient: 'Juan Pérez', type: 'Consulta General', time: '09:00', period: 'AM', status: 'Confirmada' },
-    { id: 2, patient: 'Ana Martínez', type: 'Revisión de Resultados', time: '09:30', period: 'AM', status: 'Confirmada' },
-    { id: 3, patient: 'Carlos López', type: 'Control Post-tratamiento', time: '10:00', period: 'AM', status: 'Pendiente' },
-    { id: 4, patient: 'María Sánchez', type: 'Consulta General', time: '11:15', period: 'AM', status: 'Confirmada' },
-    { id: 5, patient: 'Jorge Gómez', type: 'Electrocardiograma', time: '12:00', period: 'PM', status: 'Cancelada' },
-    { id: 6, patient: 'Laura Díaz', type: 'Consulta Pediátrica', time: '03:00', period: 'PM', status: 'Pendiente' },
-    { id: 7, patient: 'Roberto Jiménez', type: 'Revisión Anual', time: '04:30', period: 'PM', status: 'Confirmada' },
-  ]);
-
-  filteredAppointments = computed(() => {
-    const appts = this.appointments();
-    if (this.activeFilter === 'Todas') return appts;
-    return appts.filter(a => a.status === this.activeFilter);
+  editForm = this.fb.group({
+    patient_id: [null, Validators.required],
+    doctor_id: [null, Validators.required],
+    date: [null as any, Validators.required],
+    time: [null as any, Validators.required],
+    notes: ['']
   });
 
-  statusClass(status: string): string {
-    const map: Record<string, string> = {
-      'Confirmada': 'bg-mc-primary/20 text-mc-primary-dark border border-mc-primary/40',
-      'Pendiente':  'bg-amber-400/20 text-amber-800 border border-amber-400/40',
-      'Cancelada':  'bg-red-400/20 text-red-800 border border-red-400/40',
+  ngOnInit() {
+    this.loadAppointments();
+    this.loadPatients();
+    this.loadDoctors();
+  }
+
+  loadPatients() {
+    this.http.get<any>(`${environment.apiUrl}/patients`).subscribe({
+      next: (res) => this.patients.set(res.data || res),
+      error: (err) => console.error(err)
+    });
+  }
+
+  loadDoctors() {
+    this.http.get<any[]>(`${environment.apiUrl}/doctors`).subscribe({
+      next: (res) => this.doctors.set(res),
+      error: (err) => console.error(err)
+    });
+  }
+
+  loadAppointments() {
+    this.appointmentsService.getAppointments().subscribe({
+      next: (res) => {
+        this.appointments.set(res);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error(err);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  cancelAppointment(id: number) {
+    this.confirmationService.confirm({
+      message: '¿Estás seguro de cancelar esta cita?',
+      header: 'Confirmar Cancelación',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sí, cancelar',
+      rejectLabel: 'No, mantener',
+      acceptButtonStyleClass: 'p-button-danger',
+      accept: () => {
+        this.appointmentsService.cancelAppointment(id).subscribe({
+          next: () => {
+            this.messageService.add({ severity: 'success', summary: 'Cita Cancelada', detail: 'La cita fue cancelada exitosamente.' });
+            this.loadAppointments();
+          },
+          error: (err) => {
+            this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error desconocido al cancelar.' });
+          }
+        });
+      }
+    });
+  }
+
+  openViewDialog(appointment: Appointment) {
+    this.selectedAppointment.set(appointment);
+    this.viewDialog.set(true);
+  }
+
+  openEditDialog(appointment: Appointment) {
+    this.selectedAppointment.set(appointment);
+    
+    // Parse the appointment_date into Date and Time components
+    const apptDate = new Date(appointment.appointment_date);
+    
+    this.editForm.patchValue({
+      patient_id: appointment.patient_id as any,
+      doctor_id: appointment.doctor_id as any,
+      date: apptDate as any,
+      time: apptDate as any,
+      notes: appointment.notes || ''
+    });
+
+    this.editDialog.set(true);
+  }
+
+  saveEdit() {
+    if (this.editForm.invalid || !this.selectedAppointment()) return;
+
+    const formValue = this.editForm.value;
+    const dateObj = formValue.date as any;
+    const timeObj = formValue.time as any;
+    
+    let formattedDate = dateObj instanceof Date ? dateObj.toISOString().split('T')[0] : dateObj;
+    let formattedTime = timeObj instanceof Date ? timeObj.toTimeString().split(' ')[0].substring(0, 5) : timeObj;
+
+    const payload = {
+      ...formValue,
+      date: formattedDate,
+      time: formattedTime
     };
-    return map[status] ?? '';
+
+    this.appointmentsService.updateAppointment(this.selectedAppointment()!.id!, payload as any).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cita actualizada correctamente.' });
+        this.editDialog.set(false);
+        this.loadAppointments();
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error al actualizar.' });
+      }
+    });
+  }
+
+  getSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    switch (status) {
+      case 'scheduled': return 'info';
+      case 'completed': return 'success';
+      case 'cancelled': return 'danger';
+      default: return 'secondary';
+    }
+  }
+
+  translateStatus(status: string): string {
+    switch (status) {
+      case 'scheduled': return 'Programada';
+      case 'completed': return 'Completada';
+      case 'cancelled': return 'Cancelada';
+      default: return status;
+    }
   }
 }

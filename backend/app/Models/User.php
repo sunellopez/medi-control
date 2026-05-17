@@ -19,6 +19,13 @@ class User extends Authenticatable
         'is_active',
     ];
 
+    protected $appends = ['role_name'];
+
+    public function getRoleNameAttribute()
+    {
+        return $this->role()->value('name');
+    }
+
     protected $hidden = [
         'password',
         'remember_token',

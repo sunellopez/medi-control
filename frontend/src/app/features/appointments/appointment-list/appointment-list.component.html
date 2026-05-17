@@ -1,0 +1,124 @@
+<div class="p-6">
+  <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Citas Médicas</h1>
+      <p class="text-gray-600 dark:text-gray-400">Gestiona las citas programadas de los pacientes</p>
+    </div>
+    <p-button label="Agendar Cita" icon="pi pi-plus" [routerLink]="['/dashboard/appointments/new']"></p-button>
+  </div>
+
+  <div class="liquid-glass-panel overflow-hidden">
+    <p-table [value]="appointments()" [loading]="loading()" [paginator]="true" [rows]="5"
+      [rowsPerPageOptions]="[5, 10, 25, 50]" [tableStyle]="{'width':'100%'}" styleClass="!bg-transparent">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Paciente</th>
+          <th>Médico</th>
+          <th>Estado</th>
+          <th>Notas</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-appointment>
+        <tr>
+          <td class="font-medium">{{ appointment.appointment_date | date:'medium' }}</td>
+          <td>{{ appointment.patient?.first_name }} {{ appointment.patient?.last_name }}</td>
+          <td>{{ appointment.doctor?.user?.name }}</td>
+          <td>
+            <p-tag [value]="translateStatus(appointment.status)" [severity]="getSeverity(appointment.status)"
+              [rounded]="true"></p-tag>
+          </td>
+          <td>{{ appointment.notes || '-' }}</td>
+          <td>
+            <div class="flex gap-2">
+              <p-button icon="pi pi-eye" styleClass="p-button-text p-button-sm p-button-info"
+                (onClick)="openViewDialog(appointment)" pTooltip="Ver Detalles"></p-button>
+              @if (appointment.status === 'scheduled') {
+              <p-button icon="pi pi-pencil" styleClass="p-button-text p-button-sm p-button-warning"
+                (onClick)="openEditDialog(appointment)" pTooltip="Editar Cita"></p-button>
+              <p-button icon="pi pi-trash" styleClass="p-button-text p-button-sm p-button-danger"
+                (onClick)="cancelAppointment(appointment.id)" pTooltip="Cancelar Cita"></p-button>
+              }
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center py-4">No hay citas registradas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+  <p-toast></p-toast>
+
+  <!-- View Dialog -->
+  <p-dialog header="Detalles de la Cita" [modal]="true" [(visible)]="viewDialog" [style]="{ width: '400px' }">
+    @if (selectedAppointment()) {
+    <div class="flex flex-col gap-4">
+      <div>
+        <span class="font-bold">Paciente:</span>
+        <p>{{ selectedAppointment()!.patient?.first_name }} {{ selectedAppointment()!.patient?.last_name }}</p>
+      </div>
+      <div>
+        <span class="font-bold">Médico:</span>
+        <p>{{ selectedAppointment()!.doctor?.user?.name }}</p>
+      </div>
+      <div>
+        <span class="font-bold">Fecha y Hora:</span>
+        <p>{{ selectedAppointment()!.appointment_date | date:'medium' }}</p>
+      </div>
+      <div>
+        <span class="font-bold">Estado:</span>
+        <p><p-tag [value]="translateStatus(selectedAppointment()!.status)"
+            [severity]="getSeverity(selectedAppointment()!.status)"></p-tag></p>
+      </div>
+      <div>
+        <span class="font-bold">Notas:</span>
+        <p>{{ selectedAppointment()!.notes || 'Ninguna' }}</p>
+      </div>
+    </div>
+    }
+  </p-dialog>
+
+  <!-- Edit Dialog -->
+  <p-dialog header="Editar Cita" [modal]="true" [(visible)]="editDialog" [style]="{ width: '500px' }">
+    <form [formGroup]="editForm" (ngSubmit)="saveEdit()" class="flex flex-col gap-4 mt-2">
+      <div class="flex flex-col gap-2">
+        <label class="font-medium">Paciente</label>
+        <p-select [options]="patients()" formControlName="patient_id" optionLabel="first_name" optionValue="id"
+          styleClass="w-full" appendTo="body"></p-select>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium">Médico</label>
+        <p-select [options]="doctors()" formControlName="doctor_id" optionLabel="user.name" optionValue="id"
+          styleClass="w-full" appendTo="body"></p-select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium">Fecha</label>
+          <p-datepicker formControlName="date" dateFormat="yy-mm-dd" styleClass="w-full" appendTo="body"></p-datepicker>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium">Hora</label>
+          <p-datepicker formControlName="time" [timeOnly]="true" styleClass="w-full" appendTo="body"></p-datepicker>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label class="font-medium">Notas</label>
+        <textarea pTextarea formControlName="notes" rows="3" class="w-full"></textarea>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4">
+        <p-button label="Cancelar" severity="secondary" (onClick)="editDialog.set(false)"></p-button>
+        <p-button label="Guardar" type="submit" [disabled]="editForm.invalid"></p-button>
+      </div>
+    </form>
+  </p-dialog>
+</div>
